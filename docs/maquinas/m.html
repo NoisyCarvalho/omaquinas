@@ -100,8 +100,8 @@ function tela(info, msgInicial) {
   const s = info.status, c = cartao();
   icone(c, MAQ, s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro');
   c.append(el('h1', '', info.maquina));
-  c.append(el('span', 'pill ' + (s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro'), s === 'livre' ? 'Na loja' : s === 'comigo' ? 'Com você' : 'Com outro entregador'));
-  if (s === 'outro') c.append(el('p', '', 'Esta máquina está com outra pessoa.'));
+  c.append(el('span', 'pill ' + (s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro'), s === 'livre' ? 'Na loja' : s === 'comigo' ? 'Com você' : 'Indisponível'));
+  if (s === 'outro') { c.append(el('p', '', 'Esta máquina não está disponível: está com outra pessoa.')); return; }   // sem campos nem botões
 
   const nome = lerNome();
   const bloco = el('div');
