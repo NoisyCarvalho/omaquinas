@@ -214,8 +214,15 @@ h1 span { color: var(--mut); font-weight: 600; }
   main > .top, #tabs, .toast, .noprint { display: none !important; }
   main { padding: 0; max-width: none; }
   #v { margin: 0; }
-  .etq { grid-template-columns: repeat(3, 1fr); gap: 8mm; }
-  .eti { box-shadow: none; border: 1px solid #999; }
+  /* etiqueta pequena: ~38 mm de largura (QR ~34 mm), várias por folha */
+  .etq { display: flex; flex-wrap: wrap; gap: 3mm; }
+  .eti { box-shadow: none; border: 1px solid #999; width: 38mm; padding: 2mm !important; border-radius: 2mm; break-inside: avoid; text-align: center; }
+  .eti svg { width: 100%; height: auto; display: block; }
+  .eti b { font-size: 10pt; line-height: 1.1; margin-top: 1mm; display: block; }
+  .eti small { font-size: 7pt; display: block; }
+  .eti .cod { font-size: 6.5pt; margin-top: 0; }
+  .eti .lig { display: none; }
+  @page { margin: 8mm; }
   .anim > * { animation: none !important; }
 }
 
@@ -12650,7 +12657,7 @@ function findAlignmentPattern(matrix, alignmentPatternQuads, topRight, topLeft, 
 /***/ })
 /******/ ])["default"];
 });</script>
-<script src="config.js?v=3"></script>
+<script src="config.js"></script>
 <script>
 /* ================= ícones ================= */
 const IC = {
