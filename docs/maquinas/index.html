@@ -12750,16 +12750,16 @@ function atualizar() {
   if (carregando) return carregando;
   carregando = (async () => {
     try {
-      const [maq, pos, ent, etq, ev, conf] = await Promise.all([
+      const [maq, pos, etq, ev, conf] = await Promise.all([
         sel('maquinas?select=id,nome&ativa=eq.true&order=id'),
         sel('v_posicoes?select=maquina_id,na_rua,entregador,desde,saiu_por'),
-        sel('entregadores?select=nome&order=nome'),
         sel('etiquetas?select=codigo,maquina_id,criada_em&order=criada_em'),
         sel('eventos?select=id,t,maquina_id,tipo,entregador,de,quem,origem,divergente,min&order=id.desc&limit=2000'),
         sel('conferencias?select=id,t,dia,jan,operador,ok,fora&order=id.desc&limit=500')]);
-      S.maq = maq; S.ent = ent.map(x => x.nome).sort((a, b) => a.localeCompare(b, 'pt-BR')); S.etq = etq;
+      S.maq = maq; S.etq = etq;
       S.pos = {}; pos.forEach(p => { if (p.na_rua) S.pos[p.maquina_id] = { ent: p.entregador, t: p.desde, op: p.saiu_por }; });
       S.ev = ev.map(mapEv).reverse(); S.conf = conf.map(mapConf).reverse();
+      S.ent = [...new Set(S.ev.map(e => e.ent).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));   // só vem do histórico; nada é guardado à parte
       offline = false;
     } catch (e) { if (e.message !== 'sessao') offline = true; }
     finally { carregando = null; }
@@ -13130,12 +13130,7 @@ function vMais(box) {
   S.maq.forEach(m => { const r = el('div', 'lin'); r.append(ico('maq', 'tile')); const t = el('div', 'tx'); const e = etqDe(m.id); t.append(el('b', '', m.nome), el('small', '', e ? 'Etiqueta ' + codCurto(e.codigo) : 'Sem etiqueta ligada')); r.append(t, btn('Renomear', async () => { const n = await pedirTexto('Nome da máquina', m.nome, 'Nome'); if (!n) return; try { await mud('maquinas?id=eq.' + m.id, { nome: n }); } catch (x) { toast('Sem conexão.'); } await atualizar(); render(false); })); c.append(r); });
   const add = btn('+ Adicionar máquina', async () => { const id = Math.max(0, ...S.maq.map(m => m.id)) + 1; if (!(await confirmar('Adicionar Máquina ' + pad(id) + '?', 'Depois crie e ligue uma etiqueta para ela.', 'Adicionar'))) return; try { await ins('maquinas', { id, nome: 'Máquina ' + pad(id) }); } catch (x) { toast('Não foi possível adicionar.'); } await atualizar(); render(false); }); add.style.marginTop = '10px'; c.append(add); box.append(c);
 
-  c = el('div', 'card'); c.append(el('h2', '', 'Entregadores (' + S.ent.length + ')'), el('small', '', 'Novos nomes entram sozinhos quando alguém lê o QR. Remover não apaga o histórico.'));
-  S.ent.forEach(n => { const r = el('div', 'lin'); r.append(ico('user', 'tile')); const t = el('div', 'tx'); t.append(el('b', '', n)); const x = btn('', async () => { if (await confirmar('Remover ' + n + '?', 'O nome sai da lista. O histórico continua igual.', 'Remover', true)) { try { await del('entregadores?nome=eq.' + encodeURIComponent(n)); } catch (e) { toast('Sem conexão.'); } await atualizar(); render(false); } }); x.innerHTML = svg('x'); x.setAttribute('aria-label', 'Remover ' + n); r.append(t, x); c.append(r); });
-  if (!S.ent.length) c.append(el('p', 'mut', 'Nenhum nome ainda.'));
-  box.append(c);
-
-  c = el('div', 'card'); c.append(el('h2', '', 'Apagar histórico'), el('small', '', 'Apaga saídas, voltas e conferências no servidor. Mantém máquinas, etiquetas e entregadores. Baixa uma cópia (CSV) antes.'));
+  c = el('div', 'card'); c.append(el('h2', '', 'Apagar histórico'), el('small', '', 'Apaga saídas, voltas e conferências no servidor. Os nomes dos entregadores só existem no histórico: ao apagar, eles somem do servidor. Mantém máquinas e etiquetas. Baixa uma cópia (CSV) antes.'));
   c.append(btn('Apagar histórico', async () => {
     if (!(await confirmar('Apagar todo o histórico?', 'Uma cópia CSV será baixada antes. As máquinas voltam para “Na loja”.', 'Apagar', true))) return;
     try { const tudo = await todosEventos(); baixar('maquinas-movimentos-antes-de-apagar.csv', csvTxt([['Data', 'Hora', 'Máquina', 'Evento', 'Entregador', 'De (troca)', 'Minutos fora', 'Registrado por', 'Origem']].concat(tudo.map(e => [dmy(diaDe(e.t)), hh(e.t), nomeMaq(e.maq), evNome[e.tipo], e.ent, e.de || '', e.min != null ? e.min : '', e.op, e.org])))); await rpc('limpar_historico'); S.draft = {}; toast('Histórico apagado'); }
