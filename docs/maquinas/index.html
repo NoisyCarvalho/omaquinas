@@ -230,6 +230,9 @@ h1 span { color: var(--mut); font-weight: 600; }
 .lista-maq button { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-height: 52px; text-align: left; }
 .lista-maq small { color: var(--mut); }
 .off { color: var(--bad); font-weight: 700; }
+.eti .ck { position: absolute; top: 8px; left: 8px; width: 26px; height: 26px; min-height: 0; margin: 0; accent-color: #2563eb; cursor: pointer; }
+.eti.sel { outline: 3px solid #2563eb; outline-offset: -3px; }
+@media print { .eti .ck { display: none; } .eti.sel { outline: 0; } body[data-imp="sel"] .eti:not(.sel) { display: none !important; } }
 @media print { .eti .ac { display: none; } }
 </style>
 </head>
@@ -13140,9 +13143,16 @@ function vMais(box) {
 }
 
 let FE = 'todas';
+const SEL = new Set();   // etiquetas marcadas para imprimir
+window.addEventListener('afterprint', () => { delete document.body.dataset.imp; });
+const imprimir = (modo) => {
+  if (modo === 'sel' && !SEL.size) { toast('Marque as etiquetas que quer imprimir.'); return; }
+  FE = 'todas'; render(false); document.body.dataset.imp = modo;
+  setTimeout(() => window.print(), 150);
+};
 function vEtiq(box) {
   const nv = el('div', 'row noprint'); nv.style.marginBottom = '14px';
-  nv.append(btn('‹ Voltar', () => ir('mais')), btn('Imprimir', () => window.print(), 'p')); box.append(nv);
+  nv.append(btn('‹ Voltar', () => ir('mais')), btn('Imprimir todas (' + S.etq.length + ')', () => imprimir('todas'), 'p'), btn('Imprimir selecionadas (' + SEL.size + ')', () => imprimir('sel'))); box.append(nv);
   const ac = el('div', 'row noprint'); ac.style.marginBottom = '14px';
   ac.append(btn('+ Criar etiquetas', async () => {
     const n = await pedirTexto('Quantas etiquetas criar?', '18', 'Número (1 a 100)', 'Criar'); const q = parseInt(n, 10); if (!q) return;
@@ -13154,14 +13164,20 @@ function vEtiq(box) {
   box.append(el('p', 'mut noprint', 'Fluxo: crie, imprima, cole uma em cada máquina e use “Ler etiqueta e ligar” (ou toque na etiqueta) para dizer de qual máquina ela é. Depois pode trocar a máquina sem reimprimir.'));
   const ch = el('div', 'chips noprint'); ch.style.margin = '12px 0';
   [['todas', 'Todas (' + S.etq.length + ')'], ['sem', 'Sem máquina (' + S.etq.filter(e => !e.maquina_id).length + ')'], ['lig', 'Ligadas (' + S.etq.filter(e => e.maquina_id).length + ')']].forEach(([f, t]) => ch.append(btn(t, () => { FE = f; render(false); }, 'chip' + (FE === f ? ' on' : ''))));
-  box.append(ch);
+  const vis = S.etq.filter(e => FE === 'todas' || (FE === 'sem' ? !e.maquina_id : e.maquina_id));
+  const tg = el('div', 'row noprint'); tg.style.marginBottom = '12px';
+  tg.append(btn('Marcar todas', () => { vis.forEach(e => SEL.add(e.codigo)); render(false); }), btn('Limpar seleção', () => { SEL.clear(); render(false); }));
+  box.append(ch, tg);
   const lista = S.etq.filter(e => FE === 'todas' || (FE === 'sem' ? !e.maquina_id : e.maquina_id)).slice().sort((a, b) => (a.maquina_id || 999) - (b.maquina_id || 999) || a.criada_em.localeCompare(b.criada_em));
   const g = el('div', 'etq gerencia');
   lista.forEach(e => {
     const q = qrcode(0, 'M'); q.addData(urlQR(e.codigo)); q.make();
-    const m = e.maquina_id && maqDe(e.maquina_id), d = el('div', 'eti'); d.innerHTML = q.createSvgTag({ cellSize: 4, margin: 1, scalable: true });
+    const m = e.maquina_id && maqDe(e.maquina_id), d = el('div', 'eti' + (SEL.has(e.codigo) ? ' sel' : '')); d.innerHTML = q.createSvgTag({ cellSize: 4, margin: 1, scalable: true });
     d.append(el('b', '', m ? pad(m.id) : 'Nova'), el('small', '', m ? m.nome : 'Sem máquina'), el('span', 'cod', codCurto(e.codigo)));
-    const a = el('div', 'ac'); a.append(btn(m ? 'Trocar máquina' : 'Ligar à máquina', () => ligarEtiqueta(e))); d.append(a); g.append(d);
+    const a = el('div', 'ac'); a.append(btn(m ? 'Trocar máquina' : 'Ligar à máquina', () => ligarEtiqueta(e))); d.append(a);
+    const ck = el('input', 'ck'); ck.type = 'checkbox'; ck.checked = SEL.has(e.codigo); ck.setAttribute('aria-label', 'Selecionar etiqueta ' + codCurto(e.codigo));
+    ck.addEventListener('change', () => { ck.checked ? SEL.add(e.codigo) : SEL.delete(e.codigo); d.classList.toggle('sel', ck.checked); render(false); });
+    d.prepend(ck); g.append(d);
   });
   if (!lista.length) g.append(el('p', 'vazio', S.etq.length ? 'Nada neste filtro.' : 'Nenhuma etiqueta ainda. Toque em “Criar etiquetas”.'));
   box.append(g);
