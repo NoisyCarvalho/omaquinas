@@ -101,27 +101,28 @@ function tela(info, msgInicial) {
   icone(c, MAQ, s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro');
   c.append(el('h1', '', info.maquina));
   c.append(el('span', 'pill ' + (s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro'), s === 'livre' ? 'Na loja' : s === 'comigo' ? 'Com você' : 'Com outro entregador'));
-  if (s === 'outro') c.append(el('p', '', 'Está com outra pessoa. Você pode devolver à loja ou pegar para você.'));
+  if (s === 'outro') c.append(el('p', '', 'Esta máquina está com outra pessoa.'));
 
   const nome = lerNome();
   const bloco = el('div');
-  const lb = el('label', '', 'Seu nome'); lb.htmlFor = 'nome';
+  const lb = el('label', '', s === 'outro' ? 'Se a máquina é sua, digite seu nome igual ao da retirada' : 'Seu nome'); lb.htmlFor = 'nome';
   const inp = el('input'); inp.id = 'nome'; inp.type = 'text'; inp.value = nome; inp.maxLength = 40; inp.autocomplete = 'name'; inp.placeholder = 'Ex.: João Silva'; inp.autocapitalize = 'words';
   bloco.append(lb, inp); c.append(bloco);
 
   const msg = el('div', 'msg'); msg.setAttribute('role', 'alert'); msg.textContent = msgInicial || '';
   const acao = s === 'livre' ? 'saida' : 'volta';
   const b = el('button', s === 'livre' ? 'ok' : 'p', s === 'livre' ? 'Pegar máquina' : 'Devolver máquina'); b.type = 'button';
-  const b2 = s === 'outro' ? el('button', 'ok', 'Pegar esta máquina para mim') : null; if (b2) b2.type = 'button';
+  const b2 = null;
   const trava = (v) => { b.disabled = v; if (b2) b2.disabled = v; inp.disabled = v; };
-  const confere = () => { const n = limpa(inp.value); b.disabled = !nomeOk(n); if (b2) b2.disabled = b.disabled; return n; };
+  if (s === 'outro') b.hidden = true;   // com outra pessoa: só o aviso, sem botão
+  const confere = () => { const n = limpa(inp.value); b.disabled = !nomeOk(n); return n; };
   inp.addEventListener('input', () => { msg.textContent = ''; confere(); });
   // se mudar o nome, confere de novo se a máquina está com essa pessoa
   inp.addEventListener('change', async () => {
     const n = limpa(inp.value); if (!nomeOk(n) || s === 'livre') return;
     try { const i2 = await rpc('qr_info', { p_codigo: CODIGO, p_nome: n }); if (i2 && i2.ok && i2.status !== s) { gravaNome(n); tela(i2); } } catch (e) {}
   });
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !b.disabled) b.click(); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !b.disabled && s !== 'outro') b.click(); });
   const enviar = async (acao) => {
     const n = confere(); if (!nomeOk(n)) { msg.textContent = 'Escreva seu nome (só letras).'; return; }
     trava(true); msg.textContent = '';
@@ -129,13 +130,13 @@ function tela(info, msgInicial) {
     try { r = await rpc('qr_registrar', { p_codigo: CODIGO, p_nome: n, p_acao: acao }); }
     catch (e) { msg.textContent = 'Sem conexão. Tente de novo.'; trava(false); confere(); return; }
     if (r && r.ok) { gravaNome(n); vibra([60, 40, 90]); return pronto(r); }
-    const E = { ocupada: 'Outra pessoa acabou de pegar esta máquina.', ja_comigo: 'Esta máquina já está com você.', ja_na_loja: 'Esta máquina já foi devolvida.', nome_invalido: 'Escreva seu nome (só letras).' };
+    const E = { ocupada: 'Outra pessoa acabou de pegar esta máquina.', ja_comigo: 'Esta máquina já está com você.', ja_na_loja: 'Esta máquina já foi devolvida.', com_outro: 'Esta máquina está com outra pessoa.', nome_invalido: 'Escreva seu nome (só letras).' };
     msg.textContent = E[r && r.erro] || 'Não deu certo. Chame o despachante.';
     if (r && ['ocupada', 'ja_comigo', 'ja_na_loja'].includes(r.erro)) { gravaNome(n); setTimeout(carregar, 1800); }
     else { trava(false); confere(); }
   };
-  b.addEventListener('click', () => enviar(acao)); if (b2) b2.addEventListener('click', () => enviar('troca'));
-  c.append(msg); if (b2) c.append(b2); c.append(b); confere();
+  b.addEventListener('click', () => enviar(acao));
+  c.append(msg, b); confere();
   if (nome) { const t = el('button', 'l', 'Não sou ' + nome.split(' ')[0]); t.type = 'button'; t.addEventListener('click', () => { inp.value = ''; inp.focus(); confere(); }); c.append(t); }
   else setTimeout(() => inp.focus(), 250);
 }
