@@ -27,7 +27,7 @@ button:active { transform: scale(.98); }
 button.p { background: var(--acc); border-color: var(--acc); color: #fff; }
 button.ok { background: var(--ok); border-color: var(--ok); color: var(--on-ok); }
 button:disabled { opacity: .45; cursor: default; transform: none; }
-button.l { min-height: 0; padding: 8px 6px; border: 0; background: none; color: var(--acc-t); font-weight: 600; font-size: .95rem; }
+button.l { min-height: 48px; padding: 10px 18px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font-weight: 600; font-size: .95rem; }
 button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--acc-t); outline-offset: 2px; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .msg { color: var(--mut); font-size: .95rem; margin: 12px 0; text-align: center; }
@@ -65,10 +65,13 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .st.alerta { color: var(--warn); }
 .st.ok { color: var(--ok); }
 .seta { color: var(--mut); font-size: 1.7rem; line-height: 1; }
-.foot { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
+.foot { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.foot button.l { min-height: 56px; }
+@media (max-width: 380px) { .foot { grid-template-columns: 1fr; } }
 
 /* ---------- rotina: linha do tempo ---------- */
-.voltar { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 8px; margin: max(8px, env(safe-area-inset-top)) 0 0 -8px; border-radius: 999px; color: var(--acc-t); font-weight: 600; text-decoration: none; }
+.voltar { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 18px 0 14px; margin: max(12px, env(safe-area-inset-top)) 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font-weight: 600; text-decoration: none; }
+.voltar:active { transform: scale(.98); }
 .cab-pag { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-bottom: 14px; }
 .cab { display: flex; align-items: center; gap: 14px; }
 .cab .ic { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 14px; background: var(--ic); color: #fff; }
@@ -137,7 +140,7 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .kpi b { display: block; font-size: 1.7rem; line-height: 1.15; letter-spacing: -.02em; }
 .kpi span { font-size: .85rem; color: var(--mut); }
 .hbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
-.hbar button:not(.l) { min-height: 46px; padding: 8px 16px; }
+.hbar button { min-height: 46px; padding: 8px 16px; }
 .exporta { position: relative; margin-left: auto; }
 .exporta summary { display: inline-flex; align-items: center; min-height: 46px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); font-weight: 600; cursor: pointer; list-style: none; }
 .exporta summary::-webkit-details-marker { display: none; }
@@ -215,7 +218,7 @@ table.ht { border-collapse: collapse; width: 100%; font-size: .93rem; }
       <span class="pill" id="sync" aria-live="polite"></span>
     </header>
     <nav class="menu" id="menu" aria-label="Rotinas"></nav>
-    <div class="foot"><button class="l" id="abrehist" type="button">Histórico</button><button class="l" id="trocapin" type="button">Alterar PIN do gestor</button></div>
+    <div class="foot"><button class="l" id="abrehist" type="button">Histórico</button><button class="l" id="trocapin" type="button">Alterar PIN</button></div>
   </section>
 
   <!-- Página de uma rotina -->
@@ -468,6 +471,7 @@ const atualizaPerm = async (pg) => {
   let s = 'prompt';
   try { if (navigator.permissions) s = (await navigator.permissions.query({ name: 'camera' })).state; } catch (e) {}
   if (s !== 'prompt' || camOk) return;
+  p.textContent = '';   // evita duplicar se duas chamadas rodarem juntas
   p.append(el('small', '', 'Antes de começar, libere a câmera deste tablet.'));
   p.append(btn('Permitir câmera', async () => { const st = await pedirCam(); if (st) st.getTracks().forEach(t => t.stop()); atualizaPerm(pg); }, 'p'));
 };
