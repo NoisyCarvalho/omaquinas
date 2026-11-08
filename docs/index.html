@@ -6,132 +6,169 @@
 <title>Rotina da loja</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#0B2A7A">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root { --bg:#f4f4f1; --panel:#fff; --fg:#1d1d1b; --mut:#6b6b66; --line:#dcdcd6; --acc:#2563eb; --acc-bg:#e8effd; --ok:#16a34a; --ok-bg:#e7f6ec; --bad:#b91c1c; --ic:#0b2a7a; }
-@media (prefers-color-scheme: dark) { :root { --bg:#141413; --panel:#1f1f1e; --fg:#f2f2ee; --mut:#a2a29b; --line:#363633; --acc:#6ea0ff; --acc-bg:#1b2741; --ok:#4ade80; --ok-bg:#14281b; --bad:#f87171; --ic:#2b4fb8; } }
+:root { --bg:#EEF1F6; --panel:#FFFFFF; --fg:#0F1B33; --mut:#5A6785; --line:#D5DCE8; --acc:#0B2A7A; --acc-t:#0B2A7A; --acc-bg:#E6ECFA; --ic:#0B2A7A; --ok:#0E7C47; --ok-bg:#E3F4EB; --on-ok:#FFFFFF; --warn:#9A4A06; --warn-bg:#FBEFD9; --bad:#B3261E; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0B1220; --panel:#141C2F; --fg:#E8ECF5; --mut:#9AA6C0; --line:#26324D; --acc:#3F64D8; --acc-t:#9DB6FF; --acc-bg:#16223F; --ic:#2347B5; --ok:#3DD68C; --ok-bg:#0F2A1D; --on-ok:#06220F; --warn:#F5B04C; --warn-bg:#2E2210; --bad:#FF8A80; } }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-main { max-width: 960px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(48px, calc(env(safe-area-inset-bottom) + 24px)) max(16px, env(safe-area-inset-left)); }
-h1 { font-size: 1.6rem; margin: 0; }
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.data { color: var(--mut); font-size: .95rem; }
-.data::first-letter { text-transform: uppercase; }
-button { font: inherit; font-weight: 600; font-size: 1rem; min-height: 52px; padding: 12px 20px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+html { -webkit-text-size-adjust: 100%; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-variant-numeric: tabular-nums; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+@media (min-width: 700px) { body { font-size: 17px; } }
+main { max-width: 880px; margin: 0 auto; padding: 0 max(16px, env(safe-area-inset-right)) max(48px, calc(env(safe-area-inset-bottom) + 24px)) max(16px, env(safe-area-inset-left)); }
+h1 { font-size: 1.65rem; line-height: 1.2; letter-spacing: -.015em; margin: 0; font-weight: 700; }
+h2 { font-size: 1.2rem; line-height: 1.25; letter-spacing: -.01em; margin: 0; font-weight: 700; }
+button { font: inherit; font-weight: 600; font-size: 1rem; min-height: 52px; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; transition: transform .12s, background .15s; }
+button:active { transform: scale(.98); }
 button.p { background: var(--acc); border-color: var(--acc); color: #fff; }
-button.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
-button:disabled { opacity: .45; cursor: default; }
-button.l { min-height: 0; padding: 8px 4px; border: 0; background: none; color: var(--mut); font-weight: 500; font-size: .9rem; text-decoration: underline; }
-button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
+button.ok { background: var(--ok); border-color: var(--ok); color: var(--on-ok); }
+button:disabled { opacity: .45; cursor: default; transform: none; }
+button.l { min-height: 0; padding: 8px 6px; border: 0; background: none; color: var(--acc-t); font-weight: 600; font-size: .95rem; }
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--acc-t); outline-offset: 2px; }
 .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .msg { color: var(--mut); font-size: .95rem; margin: 12px 0; text-align: center; }
 .msg.e { color: var(--bad); }
 
-/* ---------- tela central ---------- */
-.menu { display: grid; gap: 18px; margin: 28px 0 24px; }
-@media (min-width: 700px) { .menu { grid-template-columns: 1fr 1fr; } }
-.tile { position: relative; display: flex; flex-direction: column; gap: 6px; background: var(--panel); border: 2px solid var(--line); border-radius: 22px; padding: 26px 24px 22px; color: var(--fg); text-decoration: none; min-height: 230px; }
-.tile:active { transform: scale(.99); }
-.tile.agora { border-color: var(--acc); }
-.tile.done { border-color: var(--ok); }
-.tile .ic, .cab .ic { display: grid; place-items: center; flex: none; width: 64px; height: 64px; border-radius: 18px; background: var(--ic); color: #fff; }
-.tile .ic svg, .cab .ic svg { width: 36px; height: 36px; }
-.tile b { font-size: 1.4rem; margin-top: 10px; }
-.tile small { color: var(--mut); font-size: 1rem; }
-.tile .st { margin-top: auto; padding-top: 16px; font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.tile .st.alerta { color: var(--acc); }
-.tile .st.feito { color: var(--ok); }
-.tag { position: absolute; top: 18px; right: 18px; background: var(--acc); color: #fff; font-size: .8rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
-.bar { height: 10px; background: var(--line); border-radius: 10px; overflow: hidden; margin-top: 8px; }
-.bar i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .3s; }
+/* ---------- início ---------- */
+.topo { display: flex; align-items: center; gap: 12px; padding: max(16px, env(safe-area-inset-top)) 0 18px; }
+.marca { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 12px; background: var(--ic); color: #fff; }
+.marca svg { width: 24px; height: 24px; }
+.topo .app { font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+.topo .data { display: block; font-size: .85rem; color: var(--mut); }
+.data::first-letter { text-transform: uppercase; }
+.pill { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--mut); font-size: .8rem; font-weight: 600; white-space: nowrap; }
+.pill:empty { display: none; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.pill[data-s="pend"] { color: var(--warn); }
+.pill[data-s="pend"]::before { background: var(--warn); }
+.menu { display: grid; gap: 14px; margin: 16px 0 20px; }
+@media (min-width: 760px) { .menu { grid-template-columns: 1fr 1fr; } }
+.rot { position: relative; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 16px; color: var(--fg); text-decoration: none; }
+.rot.agora { border-color: var(--acc-t); box-shadow: 0 0 0 1px var(--acc-t); }
+.rot:active { background: var(--bg); }
+.anel-w { position: relative; display: grid; place-items: center; width: 76px; height: 76px; }
+.anel { position: absolute; inset: 0; width: 100%; height: 100%; }
+.anel .trilho { fill: none; stroke: var(--line); stroke-width: 6; }
+.anel .arco { fill: none; stroke: var(--acc-t); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset .7s cubic-bezier(.3,.7,.2,1); }
+.anel .arco.ok { stroke: var(--ok); }
+.anel .arco.zero { opacity: 0; }
+.anel-w b { position: relative; font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; }
+.anel-w small { font-size: .8rem; color: var(--mut); font-weight: 600; }
+.rot-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.chip { padding: 3px 10px; border-radius: 999px; background: var(--acc); color: #fff; font-size: .75rem; font-weight: 700; }
+.rot p { margin: 3px 0 0; color: var(--mut); font-size: .95rem; }
+.st { display: block; margin-top: 8px; font-size: .9rem; font-weight: 600; color: var(--mut); }
+.st.alerta { color: var(--warn); }
+.st.ok { color: var(--ok); }
+.seta { color: var(--mut); font-size: 1.7rem; line-height: 1; }
+.foot { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
 
-/* ---------- página da rotina ---------- */
-.voltar { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 18px 0 12px; margin-bottom: 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--fg); font-weight: 600; text-decoration: none; }
+/* ---------- rotina: linha do tempo ---------- */
+.voltar { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 8px; margin: max(8px, env(safe-area-inset-top)) 0 0 -8px; border-radius: 999px; color: var(--acc-t); font-weight: 600; text-decoration: none; }
+.cab-pag { position: sticky; top: 0; z-index: 5; background: var(--bg); padding-bottom: 14px; }
 .cab { display: flex; align-items: center; gap: 14px; }
-.cab .ic { width: 54px; height: 54px; border-radius: 16px; }
-.cab .ic svg { width: 30px; height: 30px; }
-.quem { display: inline-block; margin-top: 6px; padding: 3px 12px; border-radius: 999px; background: var(--acc-bg); color: var(--acc); font-size: .85rem; font-weight: 600; }
-.resumo { margin: 20px 0 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-variant-numeric: tabular-nums; }
-.resumo b { font-size: 1.15rem; }
-.resumo span { color: var(--mut); font-size: .95rem; }
-.perm { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 16px 0 0; padding: 12px 16px; border: 1px dashed var(--acc); border-radius: 14px; }
+.cab .ic { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 14px; background: var(--ic); color: #fff; }
+.cab .ic svg { width: 28px; height: 28px; }
+.quem { display: block; margin-top: 2px; font-size: .9rem; color: var(--mut); }
+.prog { margin-left: auto; font-size: 1.05rem; white-space: nowrap; }
+.bar { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; margin-top: 14px; }
+.bar i { display: block; height: 100%; width: 0; background: var(--acc-t); transition: width .45s ease, background .3s; }
+.perm { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 12px; padding: 12px 14px; border: 1px solid var(--warn); background: var(--warn-bg); border-radius: 14px; }
 .perm:empty { display: none; }
-.perm small { color: var(--mut); flex: 1 1 220px; font-size: .95rem; }
-.grade { display: grid; gap: 16px; margin-top: 20px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-.item { display: flex; flex-direction: column; text-align: left; gap: 10px; padding: 0; overflow: hidden; min-height: 210px; border: 2px dashed var(--line); border-radius: 20px; background: var(--panel); font-weight: 500; }
-.item .vis { height: 112px; display: grid; place-items: center; font-size: 3.2rem; background: var(--ic); color: #fff; }
-.item .vis > svg { width: 54px; height: 54px; }
-.item .vis img { width: 100%; height: 112px; object-fit: cover; display: block; }
-.item .nome { padding: 0 16px; font-size: 1.05rem; font-weight: 600; line-height: 1.3; }
-.item .est { margin-top: auto; padding: 0 16px 14px; font-size: .95rem; font-weight: 600; color: var(--acc); }
-.item.feito, .item.conf { border-style: solid; border-color: var(--ok); }
-.item.feito .est, .item.conf .est { color: var(--ok); }
+.perm small { flex: 1 1 220px; font-size: .95rem; }
+.passos { list-style: none; margin: 6px 0 0; padding: 0; }
+.passo { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding-bottom: 12px; }
+.passo::before { content: ""; position: absolute; left: 19px; top: 64px; bottom: -20px; width: 2px; background: var(--line); }
+.passo:last-child::before { display: none; }
+.passo.ok::before { background: var(--ok); }
+.no { position: relative; z-index: 1; display: grid; place-items: center; width: 40px; height: 40px; margin-top: 22px; border-radius: 50%; background: var(--panel); border: 2px solid var(--line); color: var(--mut); font-weight: 700; }
+.no svg { width: 20px; height: 20px; }
+.no path { stroke-dasharray: 24; stroke-dashoffset: 0; }
+.passo.ok .no { background: var(--ok); border-color: var(--ok); color: var(--on-ok); }
+.item { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 10px 14px 10px 10px; text-align: left; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); font-weight: 500; }
+.item.feito { border-color: var(--ok); }
+.item .vis { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 12px; background: var(--ic); color: #fff; overflow: hidden; }
+.item .vis > svg { width: 32px; height: 32px; }
+.item .vis img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .item.conf .vis { background: var(--ok-bg); color: var(--ok); }
-.pronto { margin-top: 20px; padding: 16px 18px; border-radius: 16px; background: var(--ok-bg); color: var(--ok); font-weight: 600; text-align: center; }
-.gestor { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 12px; }
-.gestor summary { cursor: pointer; color: var(--mut); font-size: .95rem; padding: 10px 0; list-style-position: inside; }
-.gestor summary.alerta { color: var(--acc); font-weight: 600; }
-.gestor .row { justify-content: flex-start; margin-top: 8px; }
+.txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nome { font-size: 1.02rem; font-weight: 600; line-height: 1.3; }
+.est { font-size: .88rem; color: var(--mut); }
+.item.feito .est { color: var(--warn); }
+.item.conf .est { color: var(--ok); }
+.acao { color: var(--acc-t); font-weight: 600; font-size: .9rem; }
+.cam-ic { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--acc); color: #fff; }
+.cam-ic svg { width: 22px; height: 22px; }
+.pronto { margin-top: 8px; padding: 14px 16px; border-radius: 14px; background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+.gestor { margin-top: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.gestor summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; color: var(--mut); font-weight: 600; list-style: none; }
+.gestor summary::-webkit-details-marker { display: none; }
+.gestor summary::after { content: "▾"; }
+.gestor[open] summary::after { content: "▴"; }
+.gestor summary.alerta { color: var(--warn); }
+.gestor .row { justify-content: flex-start; padding: 0 16px 16px; }
 
 /* ---------- câmera, foto e PIN ---------- */
-.ov { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); color: #fff; overflow-y: auto; animation: fade .2s ease-out; }
+.ov { position: fixed; inset: 0; z-index: 10; background: rgba(6,10,20,.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); color: #fff; overflow-y: auto; animation: fade .2s ease-out; }
 .ov video, .ov img { max-width: 100%; max-height: 64vh; max-height: 64dvh; border-radius: 16px; background: #000; }
 .ov .tit { font-size: 1.1rem; font-weight: 600; text-align: center; max-width: 640px; }
 .ov .box2 { background: var(--panel); color: var(--fg); border-radius: 18px; padding: 22px; width: min(92vw, 380px); display: flex; flex-direction: column; gap: 12px; }
 .ov .box2 .row { justify-content: flex-start; }
 .ov input { font: inherit; font-size: 1.5rem; letter-spacing: .4em; text-align: center; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; }
-.foot { display: flex; justify-content: center; margin-top: 8px; }
-/* ícone de câmera */
-.shutter { width: 84px; height: 84px; min-height: 0; padding: 0; border-radius: 50%; background: #fff; color: #1d1d1b; border: 5px solid rgba(255,255,255,.45); background-clip: padding-box; display: grid; place-items: center; }
+.shutter { width: 84px; height: 84px; min-height: 0; padding: 0; border-radius: 50%; background: #fff; color: #0F1B33; border: 5px solid rgba(255,255,255,.45); background-clip: padding-box; display: grid; place-items: center; }
 .shutter svg { width: 36px; height: 36px; }
 .ov .row { align-items: center; }
-.cam-ic { width: 44px; height: 44px; border-radius: 50%; background: var(--acc); color: #fff; display: grid; place-items: center; }
-.cam-ic svg { width: 22px; height: 22px; }
 
-[hidden] { display: none !important; }
 /* ---------- histórico ---------- */
-#hist h1 { margin: 6px 0 16px; }
-.foot { gap: 18px; flex-wrap: wrap; }
-#sync { margin: 0; font-size: .85rem; }
-.hbox { display: flex; flex-direction: column; gap: 12px; max-width: 380px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
-.hbox input, .hbar select { font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; }
-.hbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-.hbar select { width: auto; }
-.hbar button, .hcsv button { min-height: 44px; padding: 8px 16px; }
-.hbar button.l { min-height: 0; padding: 8px 4px; }
-.hcsv { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-.hmsg { color: var(--mut); display: block; margin: 4px 0 10px; }
+.tit-hist { margin: 4px 0 16px; }
+.hbox { display: flex; flex-direction: column; gap: 14px; max-width: 400px; margin: 8px auto 0; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; }
+.hbox .cab .ic { width: 44px; height: 44px; }
+.hbox label { display: flex; flex-direction: column; gap: 6px; font-size: .9rem; font-weight: 600; }
+.hbox input, select { font: inherit; font-weight: 400; min-height: 46px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+.hbox input { width: 100%; background: var(--bg); }
+.hmsg { display: block; margin: 6px 0 12px; color: var(--mut); font-size: .92rem; }
 .hmsg.e { color: var(--bad); }
-.tabw { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
-table.ht { border-collapse: collapse; width: 100%; font-size: .92rem; font-variant-numeric: tabular-nums; }
-.ht th, .ht td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.ht th { color: var(--mut); font-weight: 600; font-size: .82rem; }
-.ht td.f { white-space: normal; min-width: 170px; }
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 4px 0 16px; }
+.kpi { padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.kpi b { display: block; font-size: 1.7rem; line-height: 1.15; letter-spacing: -.02em; }
+.kpi span { font-size: .85rem; color: var(--mut); }
+.hbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.hbar button:not(.l) { min-height: 46px; padding: 8px 16px; }
+.exporta { position: relative; margin-left: auto; }
+.exporta summary { display: inline-flex; align-items: center; min-height: 46px; padding: 8px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); font-weight: 600; cursor: pointer; list-style: none; }
+.exporta summary::-webkit-details-marker { display: none; }
+.exporta summary::after { content: "▾"; margin-left: 8px; color: var(--mut); }
+.menu-exp { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; display: flex; flex-direction: column; min-width: 220px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 10px 28px rgba(11,27,51,.16); }
+.menu-exp button { min-height: 46px; border: 0; background: none; text-align: left; font-weight: 500; }
+.menu-exp button:hover { background: var(--bg); }
+.tabw { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+table.ht { border-collapse: collapse; width: 100%; font-size: .93rem; }
+.ht th { padding: 12px 14px; text-align: left; font-size: .8rem; font-weight: 600; color: var(--mut); background: var(--bg); border-bottom: 1px solid var(--line); }
+.ht td { padding: 13px 14px; vertical-align: top; border-bottom: 1px solid var(--line); }
+.ht tr:last-child td { border-bottom: 0; }
 .ht tr.lin { cursor: pointer; }
-.ht tr.lin:hover { background: var(--bg); }
-.ht .t-ok { color: var(--ok); font-weight: 600; }
-.ht .t-no { color: var(--bad); font-weight: 600; }
-.ht tr.det td { white-space: normal; background: var(--bg); font-size: .88rem; line-height: 1.6; }
+.ht tr.lin:hover td { background: var(--bg); }
+.ht td { white-space: nowrap; }
+.ht td.f { min-width: 170px; white-space: normal; }
+.tag-ok, .tag-no { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
+.tag-ok { background: var(--ok-bg); color: var(--ok); }
+.tag-no { background: var(--warn-bg); color: var(--warn); }
+.ht tr.det td { background: var(--bg); font-size: .9rem; line-height: 1.7; white-space: pre-line; }
 
-/* ---------- animações ---------- */
+/* ---------- animação (só onde mostra o que mudou) ---------- */
 @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
-@keyframes entra { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
-@keyframes pop { 0% { transform: scale(.94) } 55% { transform: scale(1.04) } 100% { transform: scale(1) } }
+@keyframes entra { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes pop { 0% { transform: scale(.8) } 60% { transform: scale(1.12) } 100% { transform: scale(1) } }
 @keyframes tracar { to { stroke-dashoffset: 0 } }
 @keyframes cai { 0% { transform: translate(0, 0) rotate(0); opacity: 1 } 100% { transform: translate(var(--dx), 105vh) rotate(var(--r)); opacity: 0 } }
-.entra { animation: entra .28s ease-out; }
-.entra .tile, .entra .item { animation: entra .38s ease-out backwards; animation-delay: calc(var(--n, 0) * 60ms); }
-.item .vis { position: relative; }
-.selo { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: var(--ok); color: #fff; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
-.selo svg { width: 18px; height: 18px; }
-.selo path { stroke-dasharray: 24; stroke-dashoffset: 0; }
-.item.novo { animation: pop .45s ease-out; }
-.item.novo .selo path { stroke-dashoffset: 24; animation: tracar .4s .12s ease-out forwards; }
-.pronto:not([hidden]) { animation: entra .35s ease-out; }
+.entra { animation: entra .22s ease-out; }
+.passo.novo .no { animation: pop .45s ease-out; }
+.passo.novo .no path { stroke-dashoffset: 24; animation: tracar .4s .12s ease-out forwards; }
+.pronto:not([hidden]) { animation: entra .3s ease-out; }
 .confete { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
 .confete i { position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px; animation: cai 1.5s ease-in forwards; }
 @media (prefers-reduced-motion: reduce) {
@@ -140,16 +177,25 @@ table.ht { border-collapse: collapse; width: 100%; font-size: .92rem; font-varia
 }
 
 /* ---------- celular ---------- */
-@media (max-width: 520px) {
-  body { font-size: 17px; }
-  h1 { font-size: 1.35rem; }
-  .menu { gap: 14px; margin: 20px 0 16px; }
-  .tile { min-height: 190px; padding: 22px 20px 18px; }
-  .grade { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .item { min-height: 190px; }
-  .item .nome { padding: 0 12px; font-size: 1rem; }
-  .item .est { padding: 0 12px 12px; font-size: .88rem; }
+@media (max-width: 640px) {
+  h1 { font-size: 1.4rem; }
+  .rot { grid-template-columns: auto 1fr; }
+  .seta { display: none; }
+  .item { grid-template-columns: 56px 1fr auto; gap: 12px; }
+  .item .vis { width: 56px; height: 56px; }
+  .kpi { padding: 12px; }
+  .kpi b { font-size: 1.35rem; }
   .row button:not(.shutter) { flex: 1 1 140px; }
+  .exporta { margin-left: 0; }
+  .menu-exp { left: 0; right: auto; }
+  .ht tr.cab-t { display: none; }
+  .ht, .ht tr { display: block; }
+  .ht tr.lin { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .ht tr.lin td { display: flex; justify-content: space-between; gap: 16px; padding: 3px 0; border: 0; text-align: right; }
+  .ht tr.lin td::before { content: attr(data-l); color: var(--mut); text-align: left; }
+  .ht td, .ht td.f { white-space: normal; min-width: 0; }
+  .ht tr.det { display: block; }
+  .ht tr.det td { display: block; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .ov { flex-direction: row; flex-wrap: wrap; gap: 10px 18px; }
@@ -163,20 +209,24 @@ table.ht { border-collapse: collapse; width: 100%; font-size: .92rem; font-varia
 <main>
   <!-- Tela central -->
   <section id="home">
-    <div class="top"><h1>Rotina da loja</h1><span class="data" id="data"></span></div>
+    <header class="topo">
+      <span class="marca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4h6v3H9zM9 14.2l2.2 2.2 4.1-4.6"/></svg></span>
+      <div><span class="app">Rotina da loja</span><span class="data" id="data"></span></div>
+      <span class="pill" id="sync" aria-live="polite"></span>
+    </header>
     <nav class="menu" id="menu" aria-label="Rotinas"></nav>
-    <div class="msg" id="sync" aria-live="polite"></div>
     <div class="foot"><button class="l" id="abrehist" type="button">Histórico</button><button class="l" id="trocapin" type="button">Alterar PIN do gestor</button></div>
   </section>
 
   <!-- Página de uma rotina -->
   <section id="pag" hidden>
     <a class="voltar" href="#">‹ Início</a>
-    <div class="cab"><span class="ic" id="pag-ic" aria-hidden="true"></span><div><h1 id="titulo"></h1><span class="quem" id="quem"></span></div></div>
-    <div class="resumo"><b id="prog"></b><span>Toque em cada item e tire a foto</span></div>
-    <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+    <div class="cab-pag">
+      <div class="cab"><span class="ic" id="pag-ic" aria-hidden="true"></span><div><h1 id="titulo"></h1><span class="quem" id="quem"></span></div><b class="prog" id="prog"></b></div>
+      <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+    </div>
     <div class="perm" id="perm"></div>
-    <div class="grade" id="grade"></div>
+    <ol class="passos" id="grade"></ol>
     <div class="pronto" id="pronto" hidden></div>
     <details class="gestor" id="gestor">
       <summary id="gestor-sum">Área do gestor</summary>
@@ -190,25 +240,28 @@ table.ht { border-collapse: collapse; width: 100%; font-size: .92rem; font-varia
   <!-- Histórico (só equipe, com login) -->
   <section id="hist" hidden>
     <a class="voltar" href="#" id="hist-voltar">‹ Início</a>
-    <h1>Histórico das rotinas</h1>
+    <h1 class="tit-hist">Histórico das rotinas</h1>
     <form class="hbox" id="hist-login" hidden>
-      <b>Entrar (equipe)</b>
-      <input id="h-email" type="email" placeholder="E-mail" autocomplete="username" required>
-      <input id="h-senha" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <div class="cab"><span class="ic marca" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4h6v3H9zM9 14.2l2.2 2.2 4.1-4.6"/></svg></span><div><h2>Entrar</h2><span class="quem">Acesso da equipe</span></div></div>
+      <label>E-mail<input id="h-email" type="email" autocomplete="username" required></label>
+      <label>Senha<input id="h-senha" type="password" autocomplete="current-password" required></label>
       <button class="p" type="submit">Entrar</button>
       <small id="h-erro" class="hmsg"></small>
     </form>
     <div id="hist-dados" hidden>
+      <div class="kpis" id="h-kpi"></div>
       <div class="hbar">
         <select id="h-per" aria-label="Período"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select>
         <select id="h-rot" aria-label="Rotina"><option value="">Abertura e fechamento</option><option value="abertura">Só abertura</option><option value="fechamento">Só fechamento</option></select>
         <button id="h-atualiza" type="button">Atualizar</button>
+        <details class="exporta" id="h-exp"><summary>Exportar CSV</summary>
+          <div class="menu-exp">
+            <button id="csv-dia" type="button">Resumo por dia</button>
+            <button id="csv-itens" type="button">Itens por dia</button>
+            <button id="csv-eventos" type="button">Todos os eventos</button>
+          </div>
+        </details>
         <button class="l" id="h-sair" type="button">Sair</button>
-      </div>
-      <div class="hcsv">
-        <button id="csv-dia" type="button">⬇ CSV: resumo por dia</button>
-        <button id="csv-itens" type="button">⬇ CSV: itens por dia</button>
-        <button id="csv-eventos" type="button">⬇ CSV: todos os eventos</button>
       </div>
       <small id="h-status" class="hmsg"></small>
       <div class="tabw"><table class="ht" id="h-tab"></table></div>
@@ -259,6 +312,7 @@ const ICONES = {   // ícones de linha, 24x24 (traço branco sobre o quadrado ve
 };
 const SVG = (n) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONES[n] + '</svg>';
 const CAM_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>';
+const MARCA_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4h6v3H9zM9 14.2l2.2 2.2 4.1-4.6"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let novoK = '';                                    // último item marcado (para animar só ele)
@@ -266,7 +320,7 @@ const vibra = (ms) => { try { if (navigator.vibrate) navigator.vibrate(ms); } ca
 const anima = (s) => { s.classList.remove('entra'); void s.offsetWidth; s.classList.add('entra'); setTimeout(() => s.classList.remove('entra'), 900); };
 const confete = () => {
   if (reduz) return;
-  const c = el('div', 'confete'), cores = ['var(--acc)', 'var(--ok)', '#f59e0b', '#ec4899'];
+  const c = el('div', 'confete'), cores = ['var(--acc-t)', 'var(--ok)', '#F5B04C', '#8FA8F0'];
   for (let n = 0; n < 28; n++) {
     const i = el('i'); i.style.left = (Math.random() * 100) + '%'; i.style.background = cores[n % 4];
     i.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px'); i.style.setProperty('--r', (Math.random() * 720 - 360) + 'deg');
@@ -443,50 +497,57 @@ const situacao = (pg) => {
   ITENS[pg].forEach(it => { const e = est.s[it.k]; if (e) feitos++; if (e && e.estado === 'feito') aguardando++; });
   return { feitos, total: ITENS[pg].length, aguardando, conferido: feitos === ITENS[pg].length && !aguardando };
 };
-const textoSituacao = (s) => s.conferido ? 'Tudo conferido ✓' : s.feitos === s.total ? `Tudo pronto · ${s.aguardando} foto(s) para o gestor conferir` : s.feitos ? `${s.feitos} de ${s.total} prontos` : 'Ainda não começou';
+const textoSituacao = (s) => s.conferido ? 'Tudo conferido' : s.feitos === s.total ? `Pronto · ${s.aguardando} foto(s) para conferir` : s.feitos ? `${s.feitos} de ${s.total} feitos` : 'Ainda não começou';
 
 /* ============ tela central ============ */
 function inicio() {
   $('data').textContent = dataHoje();
   const M = $('menu'); M.textContent = '';
-  const agora = horaSP() < HORA_FECHAMENTO ? 'abertura' : 'fechamento';
-  PAGS.forEach((pg, n) => {
-    const r = ROTINAS[pg], s = situacao(pg), completo = s.feitos === s.total;
-    const a = el('a', 'tile' + (completo ? ' done' : pg === agora ? ' agora' : '')); a.href = '#' + pg; a.style.setProperty('--n', n);
+  const agora = horaSP() < HORA_FECHAMENTO ? 'abertura' : 'fechamento', C = 2 * Math.PI * 34, arcos = [];
+  PAGS.forEach((pg) => {
+    const r = ROTINAS[pg], s = situacao(pg), completo = s.feitos === s.total, frac = s.total ? s.feitos / s.total : 0;
+    const a = el('a', 'rot' + (pg === agora && !completo ? ' agora' : '')); a.href = '#' + pg;
     a.addEventListener('click', ev => { ev.preventDefault(); ir(pg); });
-    if (pg === agora && !completo) a.append(el('span', 'tag', 'Agora'));
-    const ico = el('span', 'ic'); ico.innerHTML = SVG(r.icone);
-    a.append(ico, el('b', '', r.titulo), el('small', '', r.resumo));
-    const st = el('span', 'st' + (s.aguardando ? ' alerta' : completo ? ' feito' : ''), textoSituacao(s));
-    const bar = el('div', 'bar'), i = el('i'); i.style.width = (s.total ? s.feitos / s.total * 100 : 0) + '%'; bar.append(i);
-    a.append(st, bar); M.append(a);
+    const w = el('span', 'anel-w');
+    w.innerHTML = '<svg class="anel" viewBox="0 0 76 76" aria-hidden="true"><circle class="trilho" cx="38" cy="38" r="34"/><circle class="arco' + (completo ? ' ok' : '') + (frac ? '' : ' zero') + '" cx="38" cy="38" r="34" transform="rotate(-90 38 38)" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + C.toFixed(2) + '"/></svg>';
+    const num = el('span', 'anel-n'); num.append(el('b', '', completo ? '' : String(s.feitos)), el('small', '', completo ? '' : '/' + s.total));
+    if (completo) num.innerHTML = '<b style="color:var(--ok);display:grid">' + CHECK_SVG.replace('<svg', '<svg width="28" height="28"') + '</b>';
+    w.append(num); arcos.push([w.querySelector('.arco'), C * (1 - frac)]);
+    const t = el('div'), tt = el('div', 'rot-t'); tt.append(el('b', '', r.titulo));
+    if (pg === agora && !completo) tt.append(el('span', 'chip', 'Agora'));
+    t.append(tt, el('p', '', r.resumo), el('span', 'st' + (s.aguardando ? ' alerta' : completo ? ' ok' : ''), textoSituacao(s)));
+    a.append(w, t, el('span', 'seta', '›')); M.append(a);
   });
+  requestAnimationFrame(() => requestAnimationFrame(() => arcos.forEach(([c, o]) => { c.style.strokeDashoffset = o; })));
 }
 
 /* ============ página de uma rotina ============ */
 function desenha(pg) {
   const R = ROTINAS[pg], s = situacao(pg);
   $('titulo').textContent = R.titulo; $('pag-ic').innerHTML = SVG(R.icone); $('quem').textContent = 'Responsável: ' + R.quem; document.title = R.titulo;
-  $('prog').textContent = `${s.feitos} de ${s.total} prontos`;
+  $('prog').textContent = `${s.feitos}/${s.total}`;
   $('fill').style.width = (s.total ? s.feitos / s.total * 100 : 0) + '%';
+  $('fill').style.background = s.feitos === s.total ? 'var(--ok)' : '';
   const G = $('grade'); G.textContent = '';
   ITENS[pg].forEach((it, n) => {
-    const e = est.s[it.k], feito = e && e.estado === 'feito', conf = e && e.estado === 'ok';
-    const b = el('button', 'item' + (feito ? ' feito' : conf ? ' conf' : '') + (it.k === novoK ? ' novo' : '')); b.type = 'button'; b.style.setProperty('--n', n);
+    const e = est.s[it.k], feito = e && e.estado === 'feito', conf = e && e.estado === 'ok', ok = feito || conf;
+    const li = el('li', 'passo' + (ok ? ' ok' : '') + (it.k === novoK ? ' novo' : ''));
+    const no = el('span', 'no'); if (ok) no.innerHTML = CHECK_SVG; else no.textContent = String(n + 1); no.setAttribute('aria-hidden', 'true');
+    const b = el('button', 'item' + (feito ? ' feito' : conf ? ' conf' : '')); b.type = 'button';
     const vis = el('span', 'vis');
-    if (feito) { const im = el('img'); im.src = e.foto; im.alt = ''; vis.append(im); const sl = el('span', 'selo'); sl.innerHTML = CHECK_SVG; vis.append(sl); } else if (conf) vis.textContent = '✓'; else vis.innerHTML = SVG(it.i);
-    const est_ = el('span', 'est', conf ? 'Conferido pelo gestor ✓' : feito ? `Pronto ✓ · foto das ${hhmm(e.em)}` : null);
-    if (!conf && !feito) { const ic = el('span', 'cam-ic'); ic.innerHTML = CAM_SVG; est_.append(ic); }
-    b.append(vis, el('span', 'nome', it.t), est_);
-    b.setAttribute('aria-label', `${it.t}. ${conf ? 'Conferido pelo gestor' : feito ? 'Pronto' : 'Falta tirar a foto'}`);
+    if (feito) { const im = el('img'); im.src = e.foto; im.alt = ''; vis.append(im); } else if (conf) vis.innerHTML = CHECK_SVG; else vis.innerHTML = SVG(it.i);
+    const txt = el('span', 'txt'); txt.append(el('span', 'nome', it.t), el('span', 'est', conf ? 'Conferido pelo gestor' : feito ? `Foto às ${hhmm(e.em)} · aguardando conferência` : 'Falta a foto'));
+    b.append(vis, txt);
+    if (!conf) { if (feito) b.append(el('span', 'acao', 'Ver foto')); else { const ic = el('span', 'cam-ic'); ic.innerHTML = CAM_SVG; b.append(ic); } }
+    b.setAttribute('aria-label', `Passo ${n + 1}: ${it.t}. ${conf ? 'Conferido pelo gestor' : feito ? 'Foto feita, toque para ver' : 'Falta tirar a foto'}`);
     if (conf) b.disabled = true;
     else b.addEventListener('click', () => feito ? verFoto(it.k) : tirarFoto(it.k));
-    G.append(b);
+    li.append(no, b); G.append(li);
   });
   novoK = '';
   const P = $('pronto');
   P.hidden = s.feitos !== s.total;
-  P.textContent = s.conferido ? 'Tudo conferido pelo gestor ✓' : 'Tudo pronto! Avise o gestor para conferir as fotos.';
+  P.textContent = s.conferido ? 'Tudo conferido pelo gestor.' : 'Tudo pronto. Avise o gestor para conferir as fotos.';
   $('conferir').disabled = !s.aguardando;
   $('conferir').textContent = s.aguardando ? `Conferir e apagar ${s.aguardando} foto(s)` : 'Nenhuma foto para conferir';
   const sum = $('gestor-sum'); sum.textContent = s.aguardando ? `Área do gestor · ${s.aguardando} foto(s) para conferir` : 'Área do gestor'; sum.className = s.aguardando ? 'alerta' : '';
@@ -501,7 +562,8 @@ let fila = []; try { fila = JSON.parse(ler(FILAKEY)) || []; } catch (e) { fila =
 const salvaFila = () => gravarLS(FILAKEY, JSON.stringify(fila));
 const atualizaSync = () => {
   const m = $('sync'); if (!m) return;
-  m.textContent = !CFG ? '' : fila.length ? `${fila.length} registro(s) do histórico aguardando internet` : 'Histórico em dia ✓';
+  m.textContent = !CFG ? '' : fila.length ? `${fila.length} aguardando internet` : 'Histórico em dia';
+  m.dataset.s = fila.length ? 'pend' : 'ok';
 };
 let enviando = false;
 const sincroniza = async () => {
@@ -553,20 +615,24 @@ function histMostra() {
   if (!ok) { $('h-erro').textContent = 'Histórico não configurado neste app.'; return; }
   if (tk && !histCarregado) histCarrega();
 }
+const kpi = (v, l) => { const k = el('div', 'kpi'); k.append(el('b', '', v), el('span', '', l)); return k; };
 async function histCarrega() {
   histCarregado = true; hmsg('Carregando…');
-  const T = $('h-tab'); T.textContent = '';
+  const T = $('h-tab'); T.textContent = ''; $('h-kpi').textContent = '';
   try {
     const linhas = await api('/rest/v1/rotina_v_dia?select=*&' + filtro() + '&order=data.desc,rotina.asc');
-    hmsg(linhas.length ? `${linhas.length} dia(s) · toque numa linha para ver os horários` : 'Nenhum registro neste período (ou a conta não é da equipe).');
+    const dias = new Set(linhas.map(l => l.data)).size;
+    hmsg(linhas.length ? `${dias} dia(s) com registro · toque numa linha para ver os horários` : 'Nenhum registro neste período (ou a conta não é da equipe).');
     if (!linhas.length) return;
-    const cab = el('tr'); ['Data', 'Rotina', 'Feitos', 'Início → fim', 'Duração', 'Conferido', 'Faltaram'].forEach(t => cab.append(el('th', '', t))); T.append(cab);
+    const comp = linhas.filter(l => l.completo).length, conf = linhas.filter(l => l.conferido_em_sp).length, dur = linhas.filter(l => l.duracao_min != null).map(l => Number(l.duracao_min));
+    $('h-kpi').append(kpi(Math.round(100 * comp / linhas.length) + '%', 'rotinas completas'), kpi(dur.length ? Math.round(dur.reduce((x, y) => x + y, 0) / dur.length) + ' min' : '—', 'duração média'), kpi(Math.round(100 * conf / linhas.length) + '%', 'conferidas pelo gestor'));
+    const cab = el('tr', 'cab-t'); ['Data', 'Rotina', 'Feitos', 'Início → fim', 'Duração', 'Conferido', 'Faltaram'].forEach(t => cab.append(el('th', '', t))); T.append(cab);
     linhas.forEach(l => {
-      const tr = el('tr', 'lin');
-      tr.append(el('td', '', `${ddmm(l.data)} ${l.dia_semana.slice(0, 3)}`), el('td', '', l.rotina === 'abertura' ? 'Abertura' : 'Fechamento'),
-        el('td', l.completo ? 't-ok' : 't-no', `${l.itens_feitos}/${l.itens_total}`),
-        el('td', '', l.primeiro_item_sp ? `${hm(l.primeiro_item_sp)} → ${hm(l.ultimo_item_sp)}` : '—'),
-        el('td', '', l.duracao_min != null ? l.duracao_min + ' min' : '—'), el('td', '', hm(l.conferido_em_sp)), el('td', 'f', l.faltaram || '—'));
+      const tr = el('tr', 'lin'), cel = (rot, cls, txt, node) => { const td = el('td', cls, node ? null : txt); td.dataset.l = rot; if (node) td.append(node); tr.append(td); };
+      cel('Data', '', `${ddmm(l.data)} ${l.dia_semana.slice(0, 3)}`); cel('Rotina', '', l.rotina === 'abertura' ? 'Abertura' : 'Fechamento');
+      cel('Feitos', '', '', el('span', l.completo ? 'tag-ok' : 'tag-no', `${l.itens_feitos}/${l.itens_total}`));
+      cel('Início → fim', '', l.primeiro_item_sp ? `${hm(l.primeiro_item_sp)} → ${hm(l.ultimo_item_sp)}` : '—');
+      cel('Duração', '', l.duracao_min != null ? l.duracao_min + ' min' : '—'); cel('Conferido', '', hm(l.conferido_em_sp)); cel('Faltaram', 'f', l.faltaram || '—');
       let aberto = null;
       tr.addEventListener('click', async () => {
         if (aberto) { aberto.remove(); aberto = null; return; }
@@ -574,7 +640,6 @@ async function histCarrega() {
         try {
           const ev = await api(`/rest/v1/rotina_v_historico?select=hora_sp,tipo,item,responsavel,atraso_envio_s&data=eq.${l.data}&rotina=eq.${l.rotina}&order=ocorreu_em_sp.asc`);
           td.textContent = ev.map(x => `${x.hora_sp}  ${NOMES[x.tipo] || x.tipo}${x.item ? ' · ' + x.item : ''}${x.responsavel ? ' (' + x.responsavel + ')' : ''}${x.atraso_envio_s > 300 ? ' · enviado ' + Math.round(x.atraso_envio_s / 60) + ' min depois' : ''}`).join('\n');
-          td.style.whiteSpace = 'pre-line';
         } catch (e) { td.textContent = 'Não foi possível carregar os horários.'; }
       });
       T.append(tr);
@@ -585,6 +650,7 @@ async function histCarrega() {
   }
 }
 const baixaCsv = async (nome, caminho) => {
+  $('h-exp').open = false;
   try {
     hmsg('Gerando arquivo…');
     const txt = await api(caminho, true);

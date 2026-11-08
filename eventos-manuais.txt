@@ -6,4 +6,5 @@
 2026-11-07 | repositorio renomeado para omaquinas (feito junto com o painel Maquinas); endereco da Rotina passou a ser noisycarvalho.github.io/omaquinas/ ; o antigo /CLAUDE-gestor/ deixou de abrir
 2026-11-07 (noite) | banco do historico criado no Supabase maquinas-daricake: tabelas rotina_itens e rotina_eventos, funcao rotina_registrar, views rotina_v_dia / rotina_v_itens_dia / rotina_v_historico; testado (permissoes, duplicados, validacoes); dados de teste apagados
 2026-11-07 (noite) | app Rotina v9: envia eventos ao historico com fila offline, tela Historico (login da equipe) com 3 CSVs; sw v9 nao guarda mais dados do banco no cache
+2026-11-08 | interface da Rotina redesenhada (visual profissional: aneis de progresso, linha do tempo de passos, historico com indicadores e tabela responsiva); sw v10
 # Para novos eventos, acrescente uma linha: AAAA-MM-DD HH:MM | o que aconteceu

@@ -1,8 +1,18 @@
 LOG DO REPOSITORIO - Rotina da loja
-Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-07 23:45:57.
+Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-08 00:07:32.
 Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado)
 
 === COMMITS ===
+
+2026-11-07 23:45:57 | 9b33551 | Histórico da Rotina: banco no Supabase, envio com fila offline, tela de histórico com CSV e documentação (sw v9)
+
+    A HISTORICO.md
+    M LOG.txt
+    A banco/rotina_historico.sql
+    A docs/config.js
+    M docs/index.html
+    M docs/sw.js
+    M eventos-manuais.txt
 
 2026-11-07 18:48:11 | df4c699 | Etiquetas menores na impressão (38 mm, QR ~33 mm)
 
@@ -153,4 +163,5 @@ Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado
 2026-11-07 | repositorio renomeado para omaquinas (feito junto com o painel Maquinas); endereco da Rotina passou a ser noisycarvalho.github.io/omaquinas/ ; o antigo /CLAUDE-gestor/ deixou de abrir
 2026-11-07 (noite) | banco do historico criado no Supabase maquinas-daricake: tabelas rotina_itens e rotina_eventos, funcao rotina_registrar, views rotina_v_dia / rotina_v_itens_dia / rotina_v_historico; testado (permissoes, duplicados, validacoes); dados de teste apagados
 2026-11-07 (noite) | app Rotina v9: envia eventos ao historico com fila offline, tela Historico (login da equipe) com 3 CSVs; sw v9 nao guarda mais dados do banco no cache
+2026-11-08 | interface da Rotina redesenhada (visual profissional: aneis de progresso, linha do tempo de passos, historico com indicadores e tabela responsiva); sw v10
 # Para novos eventos, acrescente uma linha: AAAA-MM-DD HH:MM | o que aconteceu
