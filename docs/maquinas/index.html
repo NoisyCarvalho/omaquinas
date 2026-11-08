@@ -13120,9 +13120,7 @@ function vHist(box) {
 
 function vMais(box) {
   let c = el('div', 'card'); c.append(el('h2', '', 'Conta'), el('small', '', 'A sessão fica só na memória: ao fechar a página, é preciso entrar de novo.'));
-  const OP = [2, 5, 10, 15, 30, 60], l0 = el('div', 'lin'), t0 = el('div', 'tx'); t0.append(el('b', '', SESS ? SESS.email : ''), el('small', '', 'Sai sozinho após ' + S.cfg.trava + ' min parado'));
-  const mn = btn('−', () => { const i = OP.indexOf(S.cfg.trava); S.cfg.trava = OP[Math.max(0, (i < 0 ? 2 : i) - 1)]; salvar(); ativo(); render(false); }), mx = btn('+', () => { const i = OP.indexOf(S.cfg.trava); S.cfg.trava = OP[Math.min(OP.length - 1, (i < 0 ? 2 : i) + 1)]; salvar(); ativo(); render(false); });
-  mn.setAttribute('aria-label', 'Sair mais cedo'); mx.setAttribute('aria-label', 'Sair mais tarde'); l0.append(t0, mn, mx); c.append(l0);
+  const l0 = el('div', 'lin'), t0 = el('div', 'tx'); t0.append(el('b', '', SESS ? SESS.email : ''), el('small', '', 'Fica conectado até tocar em Sair')); l0.append(t0); c.append(l0);
   const r0 = el('div', 'row'); r0.style.marginTop = '10px'; r0.append(btn('Sair agora', () => sair(), 'p')); c.append(r0); box.append(c);
 
   c = el('div', 'card'); c.append(el('h2', '', 'Quem está despachando'), el('small', '', 'O nome aparece em cada saída, volta e conferência feitas pelo painel.'));
@@ -13213,15 +13211,13 @@ function render(anim) {
 function ir(v) { V = v; try { location.hash = v; } catch (e) {} window.scrollTo(0, 0); render(true); }
 window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (TITULOS[h] && h !== V) { V = h; render(true); } });
 $('opchip').addEventListener('click', async () => { const n = await pedirTexto('Quem está despachando?', S.cfg.op, 'Seu nome'); if (n) { S.cfg.op = n; salvar(); render(false); } });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { ocultoEm = Date.now(); return; } if (!travado && ocultoEm && Date.now() - ocultoEm > 5 * 60000) { sair('Sessão encerrada por inatividade.'); return; } atualizar().then(() => { if (!sheetAberto() && !travado) render(false); }); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (travado) return; atualizar().then(() => { if (!sheetAberto() && !travado) render(false); }); });
 setInterval(() => { if (travado || document.hidden) return; atualizar().then(() => { if (!sheetAberto() && (V === 'quadro' || V === 'etiq')) render(false); }); }, 10000);
 
 
 /* ================= entrada (login da equipe) ================= */
-let tInativo = 0, ocultoEm = 0;
-const ativo = () => { if (travado) return; clearTimeout(tInativo); tInativo = setTimeout(() => sair('Sessão encerrada por inatividade.'), (S.cfg.trava || 10) * 60000); };
 function sair(aviso) {
-  travado = true; clearTimeout(tInativo); SESS = null;
+  travado = true; SESS = null;
   S.pos = {}; S.ev = []; S.conf = []; S.etq = []; S.ent = []; S.maq = []; S.draft = {};
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   document.querySelectorAll('.bd, .scan').forEach(e => e.remove());
@@ -13246,14 +13242,13 @@ function mostrarLogin(aviso) {
       if (ok !== true) { SESS = null; msg.textContent = 'Este usuário não faz parte da equipe.'; go.disabled = false; return; }
       gravaLS(KMAIL, e); pw.value = '';
       await atualizar();
-      travado = false; document.body.classList.remove('travado'); ov.remove(); render(true); ativo();
+      travado = false; document.body.classList.remove('travado'); ov.remove(); render(true);
     } catch (x) { SESS = null; msg.textContent = 'Sem conexão. Tente de novo.'; go.disabled = false; }
   }, 'p');
   [em, pw].forEach(i => i.addEventListener('keydown', ev => { if (ev.key === 'Enter' && !go.disabled) go.click(); }));
   box.append(em, pw, msg, go); ov.append(box); document.body.append(ov); setTimeout(() => (em.value ? pw : em).focus(), 60);
 }
 { const tb = $('travabtn'); tb.innerHTML = svg('cad'); tb.addEventListener('click', () => sair()); }
-['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(ev => document.addEventListener(ev, ativo, { passive: true, capture: true }));
 { const h = location.hash.slice(1); if (TITULOS[h]) V = h; }
 if (!BASE || !CFG.anonKey) { document.body.classList.add('travado'); const o = el('div', 'trava'), b = el('div', 'tbox'); b.append(el('h2', '', 'Painel ainda não configurado'), el('p', 'mut', 'Preencha o arquivo config.js com o endereço e a chave do seu projeto Supabase.')); o.append(b); document.body.append(o); }
 else sair();
