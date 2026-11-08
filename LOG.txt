@@ -1,8 +1,38 @@
 LOG DO REPOSITORIO - Rotina da loja
-Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-07 11:46:57.
+Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-07 23:45:57.
 Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado)
 
 === COMMITS ===
+
+2026-11-07 18:48:11 | df4c699 | Etiquetas menores na impressão (38 mm, QR ~33 mm)
+
+    M docs/maquinas/index.html
+    M docs/maquinas/sw.js
+
+2026-11-07 18:00:43 | 843a655 | Máquinas: imprimir todas as etiquetas ou só as selecionadas
+
+    M docs/maquinas/index.html
+
+2026-11-07 17:51:06 | 3accb36 | Máquinas: para outra pessoa, só o aviso de indisponível (sem campo nem botão)
+
+    M docs/maquinas/m.html
+
+2026-11-07 17:46:04 | 7b62cf9 | Máquinas: com outra pessoa, o entregador só vê o aviso
+
+    M docs/maquinas/m.html
+
+2026-11-07 14:51:32 | 0f9777f | Máquinas: remove a lista de entregadores; nomes só no histórico
+
+    M docs/maquinas/index.html
+
+2026-11-07 14:41:24 | cc7efc3 | Máquinas: qualquer entregador pode devolver ou pegar uma máquina que está com outro
+
+    M docs/maquinas/m.html
+
+2026-11-07 11:46:57 | d9a34bf | Log: registra a renomeação do repositório para omaquinas e o novo endereço da Rotina
+
+    M LOG.txt
+    M eventos-manuais.txt
 
 2026-11-06 20:24:17 | 90b3683 | Máquinas: corrige erro de sintaxe que deixava o painel em branco
 
@@ -121,4 +151,6 @@ Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado
 2026-11-06 | icones do app trocados de emoji para linhas (SVG, traco branco sobre quadrado vinho #7b0000); sw v7
 2026-11-06 | cor dos icones trocada de vinho para azul escuro (#0b2a7a); sw v8
 2026-11-07 | repositorio renomeado para omaquinas (feito junto com o painel Maquinas); endereco da Rotina passou a ser noisycarvalho.github.io/omaquinas/ ; o antigo /CLAUDE-gestor/ deixou de abrir
+2026-11-07 (noite) | banco do historico criado no Supabase maquinas-daricake: tabelas rotina_itens e rotina_eventos, funcao rotina_registrar, views rotina_v_dia / rotina_v_itens_dia / rotina_v_historico; testado (permissoes, duplicados, validacoes); dados de teste apagados
+2026-11-07 (noite) | app Rotina v9: envia eventos ao historico com fila offline, tela Historico (login da equipe) com 3 CSVs; sw v9 nao guarda mais dados do banco no cache
 # Para novos eventos, acrescente uma linha: AAAA-MM-DD HH:MM | o que aconteceu

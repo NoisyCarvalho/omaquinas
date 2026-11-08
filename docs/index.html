@@ -92,6 +92,31 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
 .cam-ic { width: 44px; height: 44px; border-radius: 50%; background: var(--acc); color: #fff; display: grid; place-items: center; }
 .cam-ic svg { width: 22px; height: 22px; }
 
+[hidden] { display: none !important; }
+/* ---------- histórico ---------- */
+#hist h1 { margin: 6px 0 16px; }
+.foot { gap: 18px; flex-wrap: wrap; }
+#sync { margin: 0; font-size: .85rem; }
+.hbox { display: flex; flex-direction: column; gap: 12px; max-width: 380px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+.hbox input, .hbar select { font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); width: 100%; }
+.hbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.hbar select { width: auto; }
+.hbar button, .hcsv button { min-height: 44px; padding: 8px 16px; }
+.hbar button.l { min-height: 0; padding: 8px 4px; }
+.hcsv { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.hmsg { color: var(--mut); display: block; margin: 4px 0 10px; }
+.hmsg.e { color: var(--bad); }
+.tabw { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+table.ht { border-collapse: collapse; width: 100%; font-size: .92rem; font-variant-numeric: tabular-nums; }
+.ht th, .ht td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ht th { color: var(--mut); font-weight: 600; font-size: .82rem; }
+.ht td.f { white-space: normal; min-width: 170px; }
+.ht tr.lin { cursor: pointer; }
+.ht tr.lin:hover { background: var(--bg); }
+.ht .t-ok { color: var(--ok); font-weight: 600; }
+.ht .t-no { color: var(--bad); font-weight: 600; }
+.ht tr.det td { white-space: normal; background: var(--bg); font-size: .88rem; line-height: 1.6; }
+
 /* ---------- animações ---------- */
 @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes entra { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
@@ -140,7 +165,8 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
   <section id="home">
     <div class="top"><h1>Rotina da loja</h1><span class="data" id="data"></span></div>
     <nav class="menu" id="menu" aria-label="Rotinas"></nav>
-    <div class="foot"><button class="l" id="trocapin" type="button">Alterar PIN do gestor</button></div>
+    <div class="msg" id="sync" aria-live="polite"></div>
+    <div class="foot"><button class="l" id="abrehist" type="button">Histórico</button><button class="l" id="trocapin" type="button">Alterar PIN do gestor</button></div>
   </section>
 
   <!-- Página de uma rotina -->
@@ -161,9 +187,38 @@ button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visibl
     </details>
   </section>
 
+  <!-- Histórico (só equipe, com login) -->
+  <section id="hist" hidden>
+    <a class="voltar" href="#" id="hist-voltar">‹ Início</a>
+    <h1>Histórico das rotinas</h1>
+    <form class="hbox" id="hist-login" hidden>
+      <b>Entrar (equipe)</b>
+      <input id="h-email" type="email" placeholder="E-mail" autocomplete="username" required>
+      <input id="h-senha" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <button class="p" type="submit">Entrar</button>
+      <small id="h-erro" class="hmsg"></small>
+    </form>
+    <div id="hist-dados" hidden>
+      <div class="hbar">
+        <select id="h-per" aria-label="Período"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select>
+        <select id="h-rot" aria-label="Rotina"><option value="">Abertura e fechamento</option><option value="abertura">Só abertura</option><option value="fechamento">Só fechamento</option></select>
+        <button id="h-atualiza" type="button">Atualizar</button>
+        <button class="l" id="h-sair" type="button">Sair</button>
+      </div>
+      <div class="hcsv">
+        <button id="csv-dia" type="button">⬇ CSV: resumo por dia</button>
+        <button id="csv-itens" type="button">⬇ CSV: itens por dia</button>
+        <button id="csv-eventos" type="button">⬇ CSV: todos os eventos</button>
+      </div>
+      <small id="h-status" class="hmsg"></small>
+      <div class="tabw"><table class="ht" id="h-tab"></table></div>
+    </div>
+  </section>
+
   <div class="msg" id="msg" role="status" hidden></div>
 </main>
 
+<script src="config.js"></script>
 <script>
 /* ============ ROTINAS (edite aqui) ============
    Cada rotina vira um botão na tela central e uma página.
@@ -173,22 +228,22 @@ const ROTINAS = {
   abertura: {
     titulo: 'Abertura Loja · Logística', icone: 'sol', resumo: 'Montar a área dos entregadores', quem: 'Rodrigo',
     itens: [
-      { i: 'cone', t: 'Posicionar os cones no estacionamento' },
-      { i: 'lixo', t: 'Colocar a sacola de lixo na árvore dos entregadores' },
-      { i: 'cafe', t: 'Colocar a garrafa de café' },
-      { i: 'acucar', t: 'Colocar o açúcar com a colher' },
-      { i: 'copo', t: 'Colocar os copos descartáveis' }
+      { i: 'cone', c: 'cones', t: 'Posicionar os cones no estacionamento' },
+      { i: 'lixo', c: 'lixo', t: 'Colocar a sacola de lixo na árvore dos entregadores' },
+      { i: 'cafe', c: 'cafe', t: 'Colocar a garrafa de café' },
+      { i: 'acucar', c: 'acucar', t: 'Colocar o açúcar com a colher' },
+      { i: 'copo', c: 'copos', t: 'Colocar os copos descartáveis' }
     ]
   },
   fechamento: {
     titulo: 'Fechamento Loja · Logística', icone: 'lua', resumo: 'Guardar tudo no fim da noite', quem: 'Rodrigo',
     itens: [
-      { i: 'cone', t: 'Recolher os cones do estacionamento' },
-      { i: 'lixo', t: 'Tirar a sacola de lixo da árvore' },
-      { i: 'cafe', t: 'Guardar a garrafa de café' },
-      { i: 'acucar', t: 'Guardar o açúcar e a colher' },
-      { i: 'copo', t: 'Guardar os copos descartáveis' },
-      { i: 'cadeira', t: 'Subir de volta as cadeiras dos entregadores' }
+      { i: 'cone', c: 'cones', t: 'Recolher os cones do estacionamento' },
+      { i: 'lixo', c: 'lixo', t: 'Tirar a sacola de lixo da árvore' },
+      { i: 'cafe', c: 'cafe', t: 'Guardar a garrafa de café' },
+      { i: 'acucar', c: 'acucar', t: 'Guardar o açúcar e a colher' },
+      { i: 'copo', c: 'copos', t: 'Guardar os copos descartáveis' },
+      { i: 'cadeira', c: 'cadeiras', t: 'Subir de volta as cadeiras dos entregadores' }
     ]
   }
 };
@@ -222,7 +277,7 @@ const confete = () => {
 const HORA_FECHAMENTO = 16;   // a partir dessa hora a tela central destaca o Fechamento
 const PAGS = Object.keys(ROTINAS);
 const ITENS = {};
-PAGS.forEach(pg => { ITENS[pg] = ROTINAS[pg].itens.map((it, n) => ({ ...it, pg, k: pg + ':' + n })); });
+PAGS.forEach(pg => { ITENS[pg] = ROTINAS[pg].itens.map((it, n) => ({ ...it, pg, k: pg + ':' + n, cod: pg + '_' + it.c })); });
 
 /* ============ armazenamento local (só neste tablet) ============ */
 const KEY = 'rotina-loja-v3', PINKEY = 'rotina-loja-pin';
@@ -244,7 +299,7 @@ const btn = (txt, fn, cls) => { const b = el('button', cls, txt); b.type = 'butt
 const aviso = (t, erro) => { const m = $('msg'); m.textContent = t || ''; m.hidden = !t; m.className = 'msg' + (erro ? ' e' : ''); };
 const dataHoje = () => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: '2-digit', month: 'long' }).format(new Date());
 const hhmm = (iso) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
-const doHash = () => { const h = location.hash.slice(1); return ROTINAS[h] ? h : ''; };
+const doHash = () => { const h = location.hash.slice(1); return (ROTINAS[h] || h === 'historico') ? h : ''; };
 let atual = doHash();                       // página aberta (não depende só do #, que alguns navegadores/visualizadores bloqueiam)
 const pagina = () => atual;
 const ir = (pg) => { atual = pg; try { location.hash = pg ? '#' + pg : ''; } catch (e) {} aviso(''); render(true); };
@@ -316,7 +371,7 @@ const confirmar = (k, foto) => {                 // mostra a foto tirada: está 
   const it = itemDe(k), ov = overlay(), im = el('img'); im.src = foto; im.alt = 'Foto tirada';
   const row = el('div', 'row');
   row.append(
-    btn('✔ Está certo', () => { ov.remove(); novoK = k; est.s[k] = { estado: 'feito', foto, em: new Date().toISOString() }; salvar(); aviso(''); desenha(it.pg); vibra(35); const sc = situacao(it.pg); if (sc.feitos === sc.total) { vibra([60, 40, 90]); confete(); } }, 'ok'),
+    btn('✔ Está certo', () => { ov.remove(); novoK = k; est.s[k] = { estado: 'feito', foto, em: new Date().toISOString() }; salvar(); registra('item_feito', it.pg, it); aviso(''); desenha(it.pg); vibra(35); const sc = situacao(it.pg); if (sc.feitos === sc.total) { vibra([60, 40, 90]); confete(); } }, 'ok'),
     btn('↺ Tirar de novo', () => { ov.remove(); tirarFoto(k); }),
     btn('Cancelar', () => ov.remove()));
   ov.append(el('div', 'tit', it.t), im, row);
@@ -437,33 +492,157 @@ function desenha(pg) {
   const sum = $('gestor-sum'); sum.textContent = s.aguardando ? `Área do gestor · ${s.aguardando} foto(s) para conferir` : 'Área do gestor'; sum.className = s.aguardando ? 'alerta' : '';
 }
 
+/* ============ histórico: fila de envio (funciona offline) ============ */
+const CFG = window.ROTINA_CONFIG || null;
+const FILAKEY = 'rotina-loja-fila', DISPKEY = 'rotina-loja-disp';
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+let disp = ler(DISPKEY); if (!disp) { disp = 'tab-' + uuid().slice(0, 8); gravarLS(DISPKEY, disp); }
+let fila = []; try { fila = JSON.parse(ler(FILAKEY)) || []; } catch (e) { fila = []; }
+const salvaFila = () => gravarLS(FILAKEY, JSON.stringify(fila));
+const atualizaSync = () => {
+  const m = $('sync'); if (!m) return;
+  m.textContent = !CFG ? '' : fila.length ? `${fila.length} registro(s) do histórico aguardando internet` : 'Histórico em dia ✓';
+};
+let enviando = false;
+const sincroniza = async () => {
+  if (!CFG || enviando || !fila.length || navigator.onLine === false) { atualizaSync(); return; }
+  enviando = true;
+  try {
+    while (fila.length) {
+      const lote = fila.slice(0, 50);
+      const r = await fetch(CFG.url + '/rest/v1/rpc/rotina_registrar', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: CFG.anonKey }, body: JSON.stringify({ p_eventos: lote }) });
+      if (!r.ok) break;
+      const j = await r.json();
+      if (!j || j.ok !== true) break;
+      if (j.rejeitados && j.rejeitados.length) console.warn('histórico: eventos recusados pelo servidor', j.rejeitados);
+      const sai = new Set([...(j.aceitos || []), ...(j.rejeitados || [])]);
+      const antes = fila.length; fila = fila.filter(x => !sai.has(x.id));
+      salvaFila();
+      if (fila.length === antes) break;          // sem progresso: tenta de novo mais tarde
+    }
+  } catch (e) { /* sem internet: fica na fila */ }
+  enviando = false; atualizaSync();
+};
+const registra = (tipo, pg, it) => {
+  fila.push({ id: uuid(), tipo, rotina: pg, item: it ? it.cod : null, em: new Date().toISOString(), disp, resp: tipo === 'item_feito' ? ROTINAS[pg].quem : 'gestor' });
+  salvaFila(); atualizaSync(); sincroniza();
+};
+window.addEventListener('online', sincroniza);
+setInterval(sincroniza, 60000);
+
+/* ============ tela de histórico (só equipe: login do Supabase) ============ */
+const SK = 'rotina-hist-tk';
+let tk = null, histCarregado = false;
+try { const o = JSON.parse(sessionStorage.getItem(SK)); if (o && o.exp > Date.now()) tk = o; } catch (e) {}
+const sairHist = () => { tk = null; histCarregado = false; try { sessionStorage.removeItem(SK); } catch (e) {} };
+const api = async (caminho, csv) => {
+  const r = await fetch(CFG.url + caminho, { headers: Object.assign({ apikey: CFG.anonKey, Authorization: 'Bearer ' + tk.access }, csv ? { Accept: 'text/csv' } : {}) });
+  if (r.status === 401) { sairHist(); throw new Error('sessao'); }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return csv ? r.text() : r.json();
+};
+const desdeData = (dias) => { const d = new Date(hoje + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - dias); return d.toISOString().slice(0, 10); };
+const filtro = () => { const rot = $('h-rot').value; return `data=gte.${desdeData(Number($('h-per').value))}` + (rot ? `&rotina=eq.${rot}` : ''); };
+const hm = (iso) => iso ? iso.slice(11, 16) : '—';
+const ddmm = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
+const NOMES = { item_feito: 'feito', item_conferido: 'conferido pelo gestor', lista_limpa: 'lista limpa' };
+const hmsg = (t, erro) => { const m = $('h-status'); m.textContent = t || ''; m.className = 'hmsg' + (erro ? ' e' : ''); };
+function histMostra() {
+  const ok = !!CFG;
+  $('hist-login').hidden = !ok || !!tk; $('hist-dados').hidden = !ok || !tk;
+  if (!ok) { $('h-erro').textContent = 'Histórico não configurado neste app.'; return; }
+  if (tk && !histCarregado) histCarrega();
+}
+async function histCarrega() {
+  histCarregado = true; hmsg('Carregando…');
+  const T = $('h-tab'); T.textContent = '';
+  try {
+    const linhas = await api('/rest/v1/rotina_v_dia?select=*&' + filtro() + '&order=data.desc,rotina.asc');
+    hmsg(linhas.length ? `${linhas.length} dia(s) · toque numa linha para ver os horários` : 'Nenhum registro neste período (ou a conta não é da equipe).');
+    if (!linhas.length) return;
+    const cab = el('tr'); ['Data', 'Rotina', 'Feitos', 'Início → fim', 'Duração', 'Conferido', 'Faltaram'].forEach(t => cab.append(el('th', '', t))); T.append(cab);
+    linhas.forEach(l => {
+      const tr = el('tr', 'lin');
+      tr.append(el('td', '', `${ddmm(l.data)} ${l.dia_semana.slice(0, 3)}`), el('td', '', l.rotina === 'abertura' ? 'Abertura' : 'Fechamento'),
+        el('td', l.completo ? 't-ok' : 't-no', `${l.itens_feitos}/${l.itens_total}`),
+        el('td', '', l.primeiro_item_sp ? `${hm(l.primeiro_item_sp)} → ${hm(l.ultimo_item_sp)}` : '—'),
+        el('td', '', l.duracao_min != null ? l.duracao_min + ' min' : '—'), el('td', '', hm(l.conferido_em_sp)), el('td', 'f', l.faltaram || '—'));
+      let aberto = null;
+      tr.addEventListener('click', async () => {
+        if (aberto) { aberto.remove(); aberto = null; return; }
+        aberto = el('tr', 'det'); const td = el('td', '', 'Carregando…'); td.colSpan = 7; aberto.append(td); tr.after(aberto);
+        try {
+          const ev = await api(`/rest/v1/rotina_v_historico?select=hora_sp,tipo,item,responsavel,atraso_envio_s&data=eq.${l.data}&rotina=eq.${l.rotina}&order=ocorreu_em_sp.asc`);
+          td.textContent = ev.map(x => `${x.hora_sp}  ${NOMES[x.tipo] || x.tipo}${x.item ? ' · ' + x.item : ''}${x.responsavel ? ' (' + x.responsavel + ')' : ''}${x.atraso_envio_s > 300 ? ' · enviado ' + Math.round(x.atraso_envio_s / 60) + ' min depois' : ''}`).join('\n');
+          td.style.whiteSpace = 'pre-line';
+        } catch (e) { td.textContent = 'Não foi possível carregar os horários.'; }
+      });
+      T.append(tr);
+    });
+  } catch (e) {
+    if (e.message === 'sessao') { histMostra(); $('h-erro').textContent = 'Sessão expirada. Entre de novo.'; $('h-erro').className = 'hmsg e'; }
+    else hmsg('Não foi possível carregar (sem internet?).', true);
+  }
+}
+const baixaCsv = async (nome, caminho) => {
+  try {
+    hmsg('Gerando arquivo…');
+    const txt = await api(caminho, true);
+    const a = el('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/csv;charset=utf-8' }));
+    a.download = `rotina-${nome}-${hoje}.csv`; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    hmsg('Arquivo baixado.');
+  } catch (e) { if (e.message === 'sessao') histMostra(); else hmsg('Não foi possível gerar o arquivo.', true); }
+};
+$('csv-dia').addEventListener('click', () => baixaCsv('resumo-por-dia', '/rest/v1/rotina_v_dia?select=*&' + filtro() + '&order=data.desc,rotina.asc'));
+$('csv-itens').addEventListener('click', () => baixaCsv('itens-por-dia', '/rest/v1/rotina_v_itens_dia?select=*&' + filtro() + '&order=data.desc,rotina.asc,item_ordem.asc'));
+$('csv-eventos').addEventListener('click', () => baixaCsv('eventos', '/rest/v1/rotina_v_historico?select=*&' + filtro() + '&order=ocorreu_em_sp.desc'));
+$('h-atualiza').addEventListener('click', histCarrega);
+$('h-per').addEventListener('change', histCarrega); $('h-rot').addEventListener('change', histCarrega);
+$('h-sair').addEventListener('click', () => { sairHist(); histMostra(); });
+$('hist-voltar').addEventListener('click', ev => { ev.preventDefault(); ir(''); });
+$('abrehist').addEventListener('click', () => ir('historico'));
+$('hist-login').addEventListener('submit', async (ev) => {
+  ev.preventDefault(); const er = $('h-erro'); er.className = 'hmsg'; er.textContent = 'Entrando…';
+  try {
+    const r = await fetch(CFG.url + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { apikey: CFG.anonKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: $('h-email').value.trim(), password: $('h-senha').value }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.access_token) throw new Error('login');
+    tk = { access: j.access_token, exp: Date.now() + ((j.expires_in || 3600) - 60) * 1000 };
+    try { sessionStorage.setItem(SK, JSON.stringify(tk)); } catch (e) {}
+    $('h-senha').value = ''; er.textContent = ''; histCarregado = false; histMostra();
+  } catch (e) { er.className = 'hmsg e'; er.textContent = 'E-mail ou senha incorretos (ou sem internet).'; }
+});
+
 /* ============ navegação ============ */
 function render(rolar) {
   novoDia();
   const pg = pagina();
-  $('home').hidden = !!pg; $('pag').hidden = !pg;
-  if (pg) { desenha(pg); atualizaPerm(pg); } else { document.title = 'Rotina da loja'; inicio(); }
-  if (rolar) { window.scrollTo(0, 0); $('gestor').open = false; anima(pg ? $('pag') : $('home')); }
+  const hist = pg === 'historico', rot = !!pg && !hist;
+  $('home').hidden = !!pg; $('pag').hidden = !rot; $('hist').hidden = !hist;
+  if (rot) { desenha(pg); atualizaPerm(pg); } else if (hist) { document.title = 'Histórico · Rotina da loja'; histMostra(); } else { document.title = 'Rotina da loja'; inicio(); }
+  atualizaSync();
+  if (rolar) { window.scrollTo(0, 0); $('gestor').open = false; anima(rot ? $('pag') : hist ? $('hist') : $('home')); }
 }
 window.addEventListener('hashchange', () => { atual = doHash(); aviso(''); render(true); });
 document.querySelector('.voltar').addEventListener('click', ev => { ev.preventDefault(); ir(''); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) render(false); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(false); sincroniza(); } });
 
 $('conferir').addEventListener('click', async () => {
   const pg = pagina(); if (!pg || !(await checaPin())) return;
-  ITENS[pg].forEach(it => { const e = est.s[it.k]; if (e && e.estado === 'feito') est.s[it.k] = { estado: 'ok', em: e.em }; });  // a foto some junto
+  ITENS[pg].forEach(it => { const e = est.s[it.k]; if (e && e.estado === 'feito') { est.s[it.k] = { estado: 'ok', em: e.em }; registra('item_conferido', pg, it); } });  // a foto some junto
   salvar(); aviso('Conferido. As fotos foram apagadas.'); desenha(pg);
 });
 $('limpar').addEventListener('click', async () => {
   const pg = pagina(); if (!pg || !(await checaPin())) return;
-  ITENS[pg].forEach(it => { delete est.s[it.k]; }); salvar(); aviso('Lista limpa.'); desenha(pg);
+  const havia = ITENS[pg].some(it => est.s[it.k]);
+  ITENS[pg].forEach(it => { delete est.s[it.k]; }); salvar(); if (havia) registra('lista_limpa', pg, null); aviso('Lista limpa.'); desenha(pg);
 });
 $('trocapin').addEventListener('click', async () => {
   if (ler(PINKEY) && !(await checaPin())) return;
   const n = await pedirPin('Novo PIN do gestor', true); if (n) { gravarLS(PINKEY, await sha(n)); aviso('PIN alterado.'); }
 });
 if (!(() => { try { localStorage.setItem('t', '1'); localStorage.removeItem('t'); return true; } catch (e) { return false; } })()) aviso('Este navegador não guarda dados. Ao fechar a página, as marcações se perdem.', true);
-render(true);
+render(true); sincroniza();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
