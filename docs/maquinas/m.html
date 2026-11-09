@@ -132,6 +132,7 @@ function tela(info, msgInicial) {
     if (r && r.ok) { gravaNome(n); vibra([60, 40, 90]); return pronto(r); }
     const E = { ocupada: 'Outra pessoa acabou de pegar esta máquina.', ja_comigo: 'Esta máquina já está com você.', ja_na_loja: 'Esta máquina já foi devolvida.', com_outro: 'Esta máquina está com outra pessoa.', nome_invalido: 'Escreva seu nome (só letras).' };
     msg.textContent = E[r && r.erro] || 'Não deu certo. Chame o despachante.';
+    if (r && r.erro === 'ja_na_loja' && acao === 'volta') { gravaNome(n); return pronto({ acao: 'volta', maquina: info.maquina }); }
     if (r && ['ocupada', 'ja_comigo', 'ja_na_loja'].includes(r.erro)) { gravaNome(n); setTimeout(carregar, 1800); }
     else { trava(false); confere(); }
   };
@@ -145,6 +146,11 @@ function pronto(r) {
   const c = cartao('feito'); icone(c, OK);
   c.append(el('h1', '', r.acao !== 'volta' ? 'Máquina é sua!' : 'Máquina devolvida!'));
   c.append(el('p', '', r.maquina + (r.acao !== 'volta' ? '. Boa entrega! Para devolver, leia este mesmo QR Code de novo.' : (r.min != null ? '. Ficou ' + (r.min < 1 ? 'menos de 1 minuto' : r.min + ' min') + ' fora. Obrigado!' : '. Obrigado!'))));
+  if (r.acao === 'volta') {
+    c.append(el('p', 'mut', 'Pode fechar esta página.'));
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}   // sem o código: se a página recarregar, não abre "Pegar máquina"
+    setTimeout(() => { try { window.close(); } catch (e) {} }, 2500);       // o navegador só deixa fechar em alguns casos
+  }
 }
 
 carregar();
