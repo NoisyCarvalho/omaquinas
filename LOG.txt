@@ -1,8 +1,24 @@
 LOG DO REPOSITORIO - Rotina da loja
-Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-09 13:24:04.
+Horarios: America/Sao_Paulo (UTC-3). Gerado em 2026-11-09 15:18:03.
 Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado)
 
 === COMMITS ===
+
+2026-11-09 13:24:04 | 373a23d | Rotina v12: paleta Daricake (vinho, marrom, creme, grena) e novos icones
+
+    M LOG.txt
+    M docs/icon-192.png
+    M docs/icon-512.png
+    M docs/icon-maskable-512.png
+    M docs/index.html
+    M docs/manifest.webmanifest
+    M docs/sw.js
+    M eventos-manuais.txt
+
+2026-11-08 20:34:14 | 224b3db | Painel das máquinas: gestor não é mais desconectado por inatividade (sai só pelo botão)
+
+    M docs/maquinas/index.html
+    M docs/maquinas/sw.js
 
 2026-11-08 00:09:41 | 554e8af | Rotina v11: botoes no estilo mobile, corrige aviso de camera duplicado
 
@@ -180,4 +196,5 @@ Formato: DATA HORA | commit | descricao   (A = criado, M = alterado, D = apagado
 2026-11-08 | interface da Rotina redesenhada (visual profissional: aneis de progresso, linha do tempo de passos, historico com indicadores e tabela responsiva); sw v10
 2026-11-08 | botoes Historico, Alterar PIN, Voltar e Sair viraram botoes de toque (estilo mobile); corrigido aviso de camera duplicado; sw v11
 2026-11-09 | paleta Daricake (vinho, marrom escuro, creme, grena) no app, manifest e icones de instalacao; sw v12
+2026-11-09 | icones da Rotina renomeados (icone-*-v12.png) para o Android detectar o desenho novo; sw v13
 # Para novos eventos, acrescente uma linha: AAAA-MM-DD HH:MM | o que aconteceu
