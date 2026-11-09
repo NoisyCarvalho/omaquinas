@@ -6,14 +6,13 @@
 <title>Painel · Máquinas</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#141413">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root { --bg:#f4f4f1; --panel:#fff; --fg:#1d1d1b; --mut:#6b6b66; --line:#dcdcd6; --acc:#2563eb; --acc-bg:#e8effd; --ok:#16a34a; --ok-bg:#e7f6ec; --warn:#d97706; --warn-bg:#fdf1dc; --bad:#b91c1c; --ic:#0b2a7a; --sh:0 1px 2px rgba(20,20,20,.06),0 8px 24px rgba(20,20,20,.07); }
-@media (prefers-color-scheme: dark) { :root { --bg:#141413; --panel:#1f1f1e; --fg:#f2f2ee; --mut:#a2a29b; --line:#363633; --acc:#6ea0ff; --acc-bg:#1b2741; --ok:#4ade80; --ok-bg:#14281b; --warn:#fbbf24; --warn-bg:#33270f; --bad:#f87171; --ic:#2b4fb8; --sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); } }
+:root { color-scheme: dark; --bg:#141413; --panel:#1f1f1e; --fg:#f2f2ee; --mut:#a2a29b; --line:#363633; --acc:#6ea0ff; --acc-bg:#1b2741; --ok:#4ade80; --ok-bg:#14281b; --warn:#fbbf24; --warn-bg:#33270f; --bad:#f87171; --ic:#2b4fb8; --sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -210,7 +209,9 @@ h1 span { color: var(--mut); font-weight: 600; }
 
 /* impressão das etiquetas */
 @media print {
-  body { background: #fff; }
+  body { background: #fff; color: #000; }
+  .eti { background: #fff !important; color: #000 !important; }
+  .eti b, .eti small, .eti .cod { color: #000 !important; }
   main > .top, #tabs, .toast, .noprint { display: none !important; }
   main { padding: 0; max-width: none; }
   #v { margin: 0; }
