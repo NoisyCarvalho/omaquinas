@@ -1,5 +1,5 @@
 // Só guarda os arquivos DESTE site. Nunca guarda respostas do banco (dados sensíveis).
-const V = 'maquinas-nuvem-v5', ARQ = ['./', 'index.html', 'm.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const V = 'maquinas-nuvem-v6', ARQ = ['./', 'index.html', 'm.html', 'jsqr.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(ARQ)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
