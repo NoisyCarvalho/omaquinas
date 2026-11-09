@@ -8,4 +8,5 @@
 2026-11-07 (noite) | app Rotina v9: envia eventos ao historico com fila offline, tela Historico (login da equipe) com 3 CSVs; sw v9 nao guarda mais dados do banco no cache
 2026-11-08 | interface da Rotina redesenhada (visual profissional: aneis de progresso, linha do tempo de passos, historico com indicadores e tabela responsiva); sw v10
 2026-11-08 | botoes Historico, Alterar PIN, Voltar e Sair viraram botoes de toque (estilo mobile); corrigido aviso de camera duplicado; sw v11
+2026-11-09 | paleta Daricake (vinho, marrom escuro, creme, grena) no app, manifest e icones de instalacao; sw v12
 # Para novos eventos, acrescente uma linha: AAAA-MM-DD HH:MM | o que aconteceu
