@@ -3102,7 +3102,8 @@ function vHist(box) {
     box.append(c);
     const ex = el('div', 'row noprint');
     const linhas = (arr) => [['Data', 'Hora', 'Máquina', 'Evento', 'Entregador', 'De (troca)', 'Minutos fora', 'Registrado por', 'Origem', 'Devolvida por outro nome']].concat(arr.map(e => [dmy(diaDe(e.t)), hh(e.t), nomeMaq(e.maq), evNome[e.tipo], e.ent, e.de || '', e.min != null ? e.min : '', e.op, e.org === 'qr' ? 'QR (entregador)' : 'Painel', e.div ? 'sim' : '']));
-    ex.append(btn('Exportar esta lista (CSV)', () => baixar('maquinas-movimentos-' + (H.escopo === 'dia' ? H.dia : 'busca') + '.csv', csvTxt(linhas(lista.slice().reverse())))), btn('Exportar tudo (CSV)', async () => { try { baixar('maquinas-movimentos-tudo.csv', csvTxt(linhas(await todosEventos()))); } catch (e) { toast('Sem conexão.'); } }));
+    if (H.escopo === 'dia') { const bx = btn('Exportar dia para planilha', () => { EXP.dia = H.dia; ir('exp'); }, 'p'); ex.append(bx); }
+    ex.append(btn('Exportar esta lista (CSV, linha por linha)', () => baixar('maquinas-movimentos-' + (H.escopo === 'dia' ? H.dia : 'busca') + '.csv', csvTxt(linhas(lista.slice().reverse())))), btn('Exportar tudo (CSV)', async () => { try { baixar('maquinas-movimentos-tudo.csv', csvTxt(linhas(await todosEventos()))); } catch (e) { toast('Sem conexão.'); } }));
     box.append(ex);
   } else {
     const lista = S.conf.filter(c => (H.escopo === 'tudo' || c.dia === H.dia) && (!nq || norm(c.op + ' ' + c.jan + 'h ' + c.fora.map(x => x.ent).join(' ')).includes(nq))).reverse();
