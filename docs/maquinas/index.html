@@ -13,6 +13,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root { color-scheme: dark; --bg:#141413; --panel:#1f1f1e; --fg:#f2f2ee; --mut:#a2a29b; --line:#363633; --acc:#6ea0ff; --acc-bg:#1b2741; --ok:#4ade80; --ok-bg:#14281b; --warn:#fbbf24; --warn-bg:#33270f; --bad:#f87171; --ic:#2b4fb8; --sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35); }
+.xs { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.xt { border-collapse: collapse; font: 13px Arial, sans-serif; color: #000; background: #fff; }
+.xt td { padding: 3px 8px; border: 1px solid #ccc; white-space: nowrap; text-align: center; font-variant-numeric: tabular-nums; }
+.xt td.n { text-align: left; }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -2972,7 +2976,7 @@ const ligar = async (cod, maq, nome) => {
 
 /* ================= telas ================= */
 let V = 'quadro', buscaQ = '', filtro = 'todas', H = { dia: hoje(), q: '', escopo: 'dia', seg: 'mov' }, confJan = null, refazer = {};
-const TITULOS = { quadro: ['Quadro', 'de máquinas'], conf: ['Conferência', 'do fechamento'], hist: ['Histórico', 'das máquinas'], mais: ['Ajustes', 'e cadastros'], etiq: ['Etiquetas', 'QR Code'] };
+const TITULOS = { quadro: ['Quadro', 'de máquinas'], conf: ['Conferência', 'do fechamento'], hist: ['Histórico', 'das máquinas'], mais: ['Ajustes', 'e cadastros'], etiq: ['Etiquetas', 'QR Code'], exp: ['Exportar', 'o dia'] };
 
 function vQuadro(box) {
   const P = posicoes(), rua = S.maq.filter(m => P[m.id]), alerta = rua.filter(m => minDe(P[m.id].t) >= S.cfg.limite);
@@ -3130,6 +3134,9 @@ function vMais(box) {
   sws.addEventListener('click', () => { S.cfg.som = S.cfg.som === false; salvar(); if (S.cfg.som) { bipe(); vibra([200, 100, 200]); } render(false); });
   ls.append(ts, btn('Testar', () => { bipe(); vibra([200, 100, 200]); }), sws); c.append(ls); box.append(c);
 
+  c = el('div', 'card'); c.append(el('h2', '', 'Exportar dia'), el('small', '', 'Monta a tabela das máquinas do dia para copiar e colar na planilha.'));
+  c.append(btn('Abrir exportação', () => ir('exp'), 'p')); box.append(c);
+
   c = el('div', 'card'); c.append(el('h2', '', 'Etiquetas QR Code'), el('small', '', 'Crie os QR Codes fixos, imprima, cole nas máquinas e ligue cada um à sua máquina.'));
   c.append(btn('Abrir etiquetas', () => ir('etiq'), 'p')); box.append(c);
 
@@ -3154,6 +3161,93 @@ const imprimir = (modo) => {
   FE = 'todas'; render(false); document.body.dataset.imp = modo;
   setTimeout(() => window.print(), 150);
 };
+/* ===== Exportar dia: tabela para copiar e colar na planilha ===== */
+let EXP = { dia: null, modais: null, carr: false, erro: false, todos: null, busca: false };
+const fHMS = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+const hms = (iso) => iso ? fHMS.format(new Date(iso)) : '';
+const ORDEM_MODAL = ['Elétrico', 'Bike', 'Moto'], MODAIS_BTN = [['Moto', 'Moto'], ['Bike', 'Bike'], ['Elétrico', 'Elétrico'], ['Ignorar', 'Ignorar (teste)']];
+async function carregaModais() {
+  if (EXP.carr) return; EXP.carr = true; EXP.erro = false;
+  try { const r = await sel('modal_entregador?select=chave,nome_planilha,modal'); const m = {}; r.forEach(x => { m[x.chave] = x; }); EXP.modais = m; }
+  catch (e) { EXP.erro = true; }
+  EXP.carr = false; if (V === 'exp') render(false);
+}
+function blocosDoDia(ev, dia) {
+  const lista = ev.slice().sort((a, b) => a.id - b.id), aberto = {}, B = [];
+  for (const e of lista) {
+    const d = diaDe(e.t); if (d > dia) break; const no = d === dia;
+    const abre = (ent) => { const b = no ? { ent, maq: e.maq, ret: e.t, dev: null } : null; if (b) B.push(b); aberto[e.maq] = b || { fora: true }; };
+    if (e.tipo === 'saida') abre(e.ent);
+    else if (e.tipo === 'volta') { const a = aberto[e.maq]; if (a && !a.fora && !a.dev) a.dev = e.t; else if (no) B.push({ ent: e.ent, maq: e.maq, ret: null, dev: e.t }); delete aberto[e.maq]; }
+    else if (e.tipo === 'troca') { const a = aberto[e.maq]; if (a && !a.fora && !a.dev) a.dev = e.t; else if (no && e.de) B.push({ ent: e.de, maq: e.maq, ret: null, dev: e.t }); abre(e.ent); }
+  }
+  return B;
+}
+function montaDia(ev, dia, modais) {
+  const faltam = {}, grupos = {};
+  blocosDoDia(ev, dia).forEach(b => {
+    const k = norm(b.ent), m = modais[k];
+    if (!m) { faltam[k] = b.ent; return; }
+    if (m.modal === 'Ignorar') return;
+    const g = m.modal + '|' + m.nome_planilha; (grupos[g] = grupos[g] || { modal: m.modal, nome: m.nome_planilha, blocos: [] }).blocos.push(b);
+  });
+  const linhas = Object.values(grupos); linhas.forEach(l => l.blocos.sort((a, b) => (a.ret || a.dev) < (b.ret || b.dev) ? -1 : 1));
+  linhas.sort((a, b) => ORDEM_MODAL.indexOf(a.modal) - ORDEM_MODAL.indexOf(b.modal) || a.nome.localeCompare(b.nome, 'pt-BR'));
+  return { faltam: Object.entries(faltam).map(([chave, nome]) => ({ chave, nome })), linhas };
+}
+const numMaq = (id) => { const m = maqDe(id); const n = m && parseInt(String(m.nome).replace(/\D/g, ''), 10); return n || id; };
+function tabelaDia(linhas, dia) {
+  const NB = Math.max(5, ...linhas.map(l => l.blocos.length)), C = ['#e6b8b7', '#fce4d0', '#fff2cc'], dd = dmy(dia).slice(0, 5), esc = (t) => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let h = '';
+  linhas.forEach(l => {
+    h += '<tr><td style="background:#fff">' + dd + '</td><td class="n" style="background:#fff">' + esc(l.modal + ' - ' + l.nome) + '</td>';
+    for (let i = 0; i < NB; i++) { const b = l.blocos[i];
+      h += '<td style="background:' + C[0] + ';font-weight:bold">' + (b ? numMaq(b.maq) : '') + '</td><td style="background:' + C[1] + '">' + (b ? hms(b.ret) : '') + '</td><td style="background:' + (i < 3 ? C[2] : '#fff') + '">' + (b ? hms(b.dev) : '') + '</td>'; }
+    h += '</tr>';
+  });
+  return '<table class="xt"><tbody>' + h + '</tbody></table>';
+}
+function vExp(box) {
+  if (!EXP.dia) EXP.dia = hoje();
+  const nv = el('div', 'row noprint'); nv.style.marginBottom = '14px'; nv.append(btn('‹ Voltar', () => ir('mais'))); box.append(nv);
+  const nav = el('div', 'dia'), b1 = btn('‹', () => { EXP.dia = somaDia(EXP.dia, -1); render(false); }), b2 = btn('›', () => { EXP.dia = somaDia(EXP.dia, 1); render(false); });
+  b1.setAttribute('aria-label', 'Dia anterior'); b2.setAttribute('aria-label', 'Próximo dia'); b2.disabled = EXP.dia >= hoje();
+  nav.append(b1, el('b', '', EXP.dia === hoje() ? 'Hoje · ' + dmy(EXP.dia) : dmy(EXP.dia)), b2); box.append(nav);
+  if (!EXP.modais) {
+    if (EXP.erro) { const c = el('div', 'card'); c.append(el('p', '', 'Não consegui carregar os modais dos entregadores.'), btn('Tentar de novo', () => carregaModais(), 'p')); box.append(c); }
+    else { box.append(el('p', 'vazio', 'Carregando…')); carregaModais(); }
+    return;
+  }
+  if (S.ev.length && EXP.dia < diaDe(S.ev[0].t) && !EXP.todos) {
+    if (!EXP.busca) { EXP.busca = true; todosEventos().then(r => { EXP.todos = r; }).catch(() => {}).then(() => { EXP.busca = false; if (V === 'exp') render(false); }); }
+    if (EXP.busca) { box.append(el('p', 'vazio', 'Buscando o histórico desse dia…')); return; }
+  }
+  const { faltam, linhas } = montaDia(EXP.todos || S.ev, EXP.dia, EXP.modais);
+  if (faltam.length) {
+    const c = el('div', 'card'); c.append(el('h2', '', 'Qual o modal?'), el('small', '', 'Escolha uma vez; fica guardado para os próximos dias.'));
+    faltam.forEach(f => {
+      const l = el('div', 'lin'), t = el('div', 'tx'); t.append(el('b', '', f.nome)); l.append(t); c.append(l);
+      const r = el('div', 'row'); r.style.marginBottom = '10px';
+      MODAIS_BTN.forEach(([m, rot]) => r.append(btn(rot, async () => {
+        try { await rpc('definir_modal', { p_chave: f.chave, p_nome: f.nome, p_modal: m }); EXP.modais[f.chave] = { chave: f.chave, nome_planilha: f.nome, modal: m }; render(false); }
+        catch (e) { toast('Não consegui salvar. Tente de novo.'); }
+      })));
+      c.append(r);
+    });
+    box.append(c); return;
+  }
+  if (!linhas.length) { box.append(el('p', 'vazio', 'Nenhuma retirada de máquina neste dia.')); return; }
+  const c = el('div', 'card'); c.append(el('small', '', linhas.length + ' entregadores. Toque em Copiar e cole na planilha (Cmd+V). As cores e as colunas vão junto.'));
+  const sc = el('div', 'xs'); sc.innerHTML = tabelaDia(linhas, EXP.dia);
+  const r = el('div', 'row'); r.style.margin = '12px 0';
+  r.append(btn('Copiar tabela', () => {
+    const t = sc.querySelector('table'), g = document.createRange(), se = getSelection(); g.selectNodeContents(t); se.removeAllRanges(); se.addRange(g);
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    toast(ok ? 'Tabela copiada. Cole na planilha.' : 'Tabela selecionada. Aperte Cmd+C.');
+  }, 'p'));
+  c.append(r, sc); box.append(c);
+}
+
 function vEtiq(box) {
   const nv = el('div', 'row noprint'); nv.style.marginBottom = '14px';
   nv.append(btn('‹ Voltar', () => ir('mais')), btn('Imprimir todas (' + S.etq.length + ')', () => imprimir('todas'), 'p'), btn('Imprimir selecionadas (' + SEL.size + ')', () => imprimir('sel'))); box.append(nv);
@@ -3195,7 +3289,7 @@ function desenhaOp() {
 }
 function desenhaTabs() {
   const t = $('tabs'); t.textContent = '';
-  ABAS.forEach(([v, n]) => { const b = el('button'); b.type = 'button'; b.innerHTML = svg(v === 'mais' ? 'mais' : v) + '<span>' + n + '</span>'; const ativa = V === v || (v === 'mais' && V === 'etiq'); if (ativa) { b.className = 'on'; b.setAttribute('aria-current', 'page'); } b.addEventListener('click', () => { if (V !== v) ir(v); }); t.append(b); });
+  ABAS.forEach(([v, n]) => { const b = el('button'); b.type = 'button'; b.innerHTML = svg(v === 'mais' ? 'mais' : v) + '<span>' + n + '</span>'; const ativa = V === v || (v === 'mais' && (V === 'etiq' || V === 'exp')); if (ativa) { b.className = 'on'; b.setAttribute('aria-current', 'page'); } b.addEventListener('click', () => { if (V !== v) ir(v); }); t.append(b); });
 }
 function render(anim) {
   if (travado) return;
@@ -3203,7 +3297,7 @@ function render(anim) {
   $('data').textContent = dataLonga(hoje()); document.title = 'Máquinas · ' + a; document.body.dataset.v = V;
   const box = $('v'); box.textContent = ''; box.className = anim ? 'anim' : '';
   if (offline) { const f = el('div', 'offline noprint'); f.setAttribute('role', 'status'); f.append(ico('alerta'), el('span', '', 'Sem conexão' + (semConexaoDesde ? ' desde ' + hh(semConexaoDesde) : '') + '. O que aparece pode estar desatualizado; tentando de novo a cada 10 s.')); box.append(f); }
-  ({ quadro: vQuadro, conf: vConf, hist: vHist, mais: vMais, etiq: vEtiq })[V](box);
+  ({ quadro: vQuadro, conf: vConf, hist: vHist, mais: vMais, etiq: vEtiq, exp: vExp })[V](box);
   ultAss = assinatura();
   if (anim) [...box.children].forEach((c, n) => c.style.setProperty('--n', n));
   desenhaTabs(); desenhaOp();
