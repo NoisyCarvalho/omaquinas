@@ -99,21 +99,20 @@ function tela(info, msgInicial) {
   const s = info.status, c = cartao();
   icone(c, MAQ, s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro');
   c.append(el('h1', '', info.maquina));
-  c.append(el('span', 'pill ' + (s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro'), s === 'livre' ? 'Na loja' : s === 'comigo' ? 'Com você' : 'Indisponível'));
-  if (s === 'outro') { c.append(el('p', '', 'Esta máquina não está disponível: está com outra pessoa.')); return; }   // sem campos nem botões
+  c.append(el('span', 'pill ' + (s === 'livre' ? '' : s === 'comigo' ? 'rua' : 'outro'), s === 'livre' ? 'Na loja' : s === 'comigo' ? 'Com você' : 'Em uso'));
+  if (s === 'outro') c.append(el('p', '', 'Máquina em uso. Se é você quem está com ela, escreva seu nome e toque em Devolver.'));
 
   const nome = lerNome();
   const bloco = el('div');
-  const lb = el('label', '', s === 'outro' ? 'Se a máquina é sua, digite seu nome igual ao da retirada' : 'Seu nome'); lb.htmlFor = 'nome';
+  const lb = el('label', '', s === 'outro' ? 'Seu nome, igual ao da retirada' : 'Seu nome'); lb.htmlFor = 'nome';
   const inp = el('input'); inp.id = 'nome'; inp.type = 'text'; inp.value = nome; inp.maxLength = 40; inp.autocomplete = 'name'; inp.placeholder = 'Ex.: João Silva'; inp.autocapitalize = 'words';
   bloco.append(lb, inp); c.append(bloco);
 
   const msg = el('div', 'msg'); msg.setAttribute('role', 'alert'); msg.textContent = msgInicial || '';
   const acao = s === 'livre' ? 'saida' : 'volta';
-  const b = el('button', s === 'livre' ? 'ok' : 'p', s === 'livre' ? 'Pegar máquina' : 'Devolver máquina'); b.type = 'button';
+  const b = el('button', s === 'livre' ? 'ok' : 'p', s === 'livre' ? 'Pegar máquina' : s === 'outro' ? 'Devolver' : 'Devolver máquina'); b.type = 'button';
   const b2 = null;
   const trava = (v) => { b.disabled = v; if (b2) b2.disabled = v; inp.disabled = v; };
-  if (s === 'outro') b.hidden = true;   // com outra pessoa: só o aviso, sem botão
   const confere = () => { const n = limpa(inp.value); b.disabled = !nomeOk(n); return n; };
   inp.addEventListener('input', () => { msg.textContent = ''; confere(); });
   // se mudar o nome, confere de novo se a máquina está com essa pessoa
@@ -121,7 +120,7 @@ function tela(info, msgInicial) {
     const n = limpa(inp.value); if (!nomeOk(n) || s === 'livre') return;
     try { const i2 = await rpc('qr_info', { p_codigo: CODIGO, p_nome: n }); if (i2 && i2.ok && i2.status !== s) { gravaNome(n); tela(i2); } } catch (e) {}
   });
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !b.disabled && s !== 'outro') b.click(); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !b.disabled) b.click(); });
   const enviar = async (acao) => {
     const n = confere(); if (!nomeOk(n)) { msg.textContent = 'Escreva seu nome (só letras).'; return; }
     trava(true); msg.textContent = '';
@@ -129,10 +128,10 @@ function tela(info, msgInicial) {
     try { r = await rpc('qr_registrar', { p_codigo: CODIGO, p_nome: n, p_acao: acao }); }
     catch (e) { msg.textContent = 'Sem conexão. Tente de novo.'; trava(false); confere(); return; }
     if (r && r.ok) { gravaNome(n); vibra([60, 40, 90]); return pronto(r); }
-    const E = { ocupada: 'Outra pessoa acabou de pegar esta máquina.', ja_comigo: 'Esta máquina já está com você.', ja_na_loja: 'Esta máquina já foi devolvida.', com_outro: 'Esta máquina está com outra pessoa.', nome_invalido: 'Escreva seu nome (só letras).' };
+    const E = { ocupada: 'Outra pessoa acabou de pegar esta máquina.', ja_comigo: 'Esta máquina já está com você.', ja_na_loja: 'Esta máquina já foi devolvida.', com_outro: 'Esta máquina está em uso.', nome_invalido: 'Escreva seu nome (só letras).' };
     msg.textContent = E[r && r.erro] || 'Não deu certo. Chame o despachante.';
-    if (r && r.erro === 'ja_na_loja' && acao === 'volta') { gravaNome(n); return pronto({ acao: 'volta', maquina: info.maquina }); }
-    if (r && ['ocupada', 'ja_comigo', 'ja_na_loja'].includes(r.erro)) { gravaNome(n); setTimeout(carregar, 1800); }
+    if (r && r.erro === 'ja_na_loja' && acao === 'volta' && s !== 'outro') { gravaNome(n); return pronto({ acao: 'volta', maquina: info.maquina }); }
+    if (r && ['ocupada', 'ja_comigo', 'ja_na_loja'].includes(r.erro)) { if (s !== 'outro') gravaNome(n); setTimeout(carregar, 1800); }
     else { trava(false); confere(); }
   };
   b.addEventListener('click', () => enviar(acao));
